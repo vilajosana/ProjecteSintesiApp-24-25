@@ -1,0 +1,1 @@
+# ProjecteSintesiApp-24-25
