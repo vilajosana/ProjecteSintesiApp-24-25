@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Importa useNavigation
+import { useNavigation } from '@react-navigation/native';
 
 const Inici = () => {
-  const navigation = useNavigation(); // Obtén la función de navegación
+  const navigation = useNavigation(); 
 
   return (
     <View style={styles.container}>
       {/* Cabecera con la imagen de fondo */}
       <ImageBackground
-        source={require('../images/SportSpotLogo.png')} // Ruta corregida
+        source={require('../images/SportSpotLogo.png')} 
         style={styles.header}
-        resizeMode="contain" // Ajuste para mantener la proporción de la imagen
+        resizeMode="contain" 
       />
 
       {/* Título en un fondo ovalado */}
@@ -27,7 +27,8 @@ const Inici = () => {
         <Text style={styles.buttonText}>Iniciar Sessió</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button}>
+      {/* Botón de registro */}
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
         <Text style={styles.buttonText}>Registrar-se</Text>
       </TouchableOpacity>
     </View>
@@ -39,50 +40,50 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#e5e5e5', // Color de fondo general
+    backgroundColor: '#e5e5e5',
     padding: 20,
   },
   header: {
     width: '100%',
-    height: 469, // Ocupar todo el ancho de la pantalla
-    aspectRatio: 16 / 9, // Proporción para adaptarse a diferentes tamaños de pantalla
-    marginBottom: 20, // Espacio entre la cabecera y el título
+    height: 469,
+    aspectRatio: 16 / 9,
+    marginBottom: 20,
   },
   titleContainer: {
-    backgroundColor: '#ff9999', // Color de fondo del título
+    backgroundColor: '#ff9999',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 32,
-    marginBottom: 20, // Espacio entre el título y el siguiente elemento
-    width: '80%', // Ancho del título
+    marginBottom: 20,
+    width: '80%',
     alignItems: 'center',
-    shadowColor: '#000', // Color de la sombra
-    shadowOffset: { width: 0, height: 2 }, // Posición de la sombra
-    shadowOpacity: 0.25, // Opacidad de la sombra
-    shadowRadius: 3.84, // Radio de la sombra
-    elevation: 5, // Elevación para darle un aspecto 3D
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   titleText: {
-    fontSize: 30, // Tamaño del texto del título
+    fontSize: 30,
     fontWeight: 'bold',
-    color: 'black', // Color del texto
+    color: 'black',
   },
   space: {
-    height: 20, // Ajusta esta altura según el espacio deseado
+    height: 20,
   },
   button: {
-    backgroundColor: '#ff9999', // Color de fondo del botón
+    backgroundColor: '#ff9999',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 25,
     marginBottom: 40,
-    width: '80%', // Ancho del botón
+    width: '80%',
     alignItems: 'center',
-    shadowColor: '#000', // Color de la sombra
-    shadowOffset: { width: 0, height: 2 }, // Posición de la sombra
-    shadowOpacity: 0.25, // Opacidad de la sombra
-    shadowRadius: 3.84, // Radio de la sombra
-    elevation: 5, // Elevación para darle un aspecto 3D
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   buttonText: {
     fontSize: 18,

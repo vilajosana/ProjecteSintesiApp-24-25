@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Text as RNText } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-const Register = ({ route }) => {
+const Register = () => {
   const [usuario, setUsuario] = useState('');
   const [contrasenya, setContrasenya] = useState('');
   const [repetirContrasenya, setRepetirContrasenya] = useState('');
-  const [selectedButton, setSelectedButton] = useState('signUp'); // Valor inicial
+  const [selectedButton, setSelectedButton] = useState('signUp'); // Sign Up seleccionado por defecto
   const navigation = useNavigation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setSelectedButton('signUp'); // Asegura que siempre esté marcado Sign Up al enfocarse en la pantalla
+    }, [])
+  );
 
   const handleIniciarSesion = () => {
     console.log('Usuario:', usuario);
     console.log('Contraseña:', contrasenya);
     console.log('Repetir Contraseña:', repetirContrasenya);
   };
-
-  useEffect(() => {
-    if (route.params?.from === 'Login') {
-      setSelectedButton('signUp'); // Cambiar a "signUp" al navegar desde Login
-    }
-  }, [route.params]);
 
   return (
     <View style={styles.container}>
@@ -40,7 +40,7 @@ const Register = ({ route }) => {
               ]} 
               onPress={() => {
                 setSelectedButton('signIn');
-                navigation.navigate('Login', { from: 'Register' }); // Navegar a Login
+                navigation.navigate('Login', { from: 'Register' });
               }}
             >
               <Text style={styles.buttonText}>Sign in</Text>
@@ -50,9 +50,7 @@ const Register = ({ route }) => {
                 selectedButton === 'signUp' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signUp' && styles.buttonTransparent
               ]} 
-              onPress={() => {
-                setSelectedButton('signUp');
-              }}
+              onPress={() => setSelectedButton('signUp')}
             >
               <Text style={styles.buttonText}>Sign up</Text>
             </TouchableOpacity>
@@ -83,10 +81,10 @@ const Register = ({ route }) => {
         style={styles.loginButton} 
         onPress={() => {
           handleIniciarSesion();
-          navigation.navigate('Login'); // Navegar a Login al registrar
+          navigation.navigate('Login');
         }}
       >
-        <RNText style={styles.loginButtonText}>Registar-se</RNText> 
+        <Text style={styles.loginButtonText}>Registrar-se</Text> 
       </TouchableOpacity>
     </View>
   );
@@ -140,14 +138,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonSelected: {
-    backgroundColor: '#F08080',
+    backgroundColor: '#FF6347',
   },
   buttonTransparent: {
     opacity: 0.3,
   },
   buttonText: {
     fontSize: 16,
-    color: 'black',
+    color: 'black', // Cambiado a negro
   },
   input: {
     height: 40,
@@ -166,7 +164,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   loginButtonText: {
-    color: 'black',
+    color: 'black', // Cambiado a negro
     fontSize: 16,
   },
 });

@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 const Login = () => {
   const [usuario, setUsuario] = useState('');
   const [contrasenya, setContrasenya] = useState('');
-  const [selectedButton, setSelectedButton] = useState(null); // Estado para el botón seleccionado
+  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionado por defecto
+  const navigation = useNavigation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setSelectedButton('signIn'); // Asegura que siempre esté marcado Sign In al enfocarse en la pantalla
+    }, [])
+  );
 
   const handleIniciarSesion = () => {
-    // Aquí puedes agregar la lógica para manejar el inicio de sesión
     console.log('Usuario:', usuario);
     console.log('Contraseña:', contrasenya);
+    navigation.navigate('MenuPrincipal'); // Navega a MenuPrincipal
   };
 
   return (
@@ -18,26 +26,32 @@ const Login = () => {
         <Image 
           source={require('../images/SportSpotLogo.png')} 
           style={styles.logo} 
-          resizeMode="cover" // Cambiar a cover para llenar el área
+          resizeMode="cover" 
         />
       </View>
       <View style={styles.formContainer}>
         <View style={styles.buttonRectangle}>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, selectedButton === 'signIn' && styles.buttonSelected]} 
+              style={[styles.button, 
+                selectedButton === 'signIn' && styles.buttonSelected,
+                selectedButton !== null && selectedButton !== 'signIn' && styles.buttonTransparent
+              ]} 
               onPress={() => {
-                setSelectedButton('signIn'); // Establece el botón de "Sign in" como seleccionado
+                setSelectedButton('signIn');
                 console.log('Sign in pressed');
               }}
             >
               <Text style={styles.buttonText}>Sign in</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, selectedButton === 'signUp' && styles.buttonSelected]} 
+              style={[styles.button, 
+                selectedButton === 'signUp' && styles.buttonSelected,
+                selectedButton !== null && selectedButton !== 'signUp' && styles.buttonTransparent
+              ]} 
               onPress={() => {
-                setSelectedButton('signUp'); // Establece el botón de "Sign up" como seleccionado
-                console.log('Sign up pressed');
+                setSelectedButton('signUp');
+                navigation.navigate('Register', { from: 'Login' });
               }}
             >
               <Text style={styles.buttonText}>Sign up</Text>
@@ -57,13 +71,13 @@ const Login = () => {
           value={contrasenya}
           secureTextEntry={true} 
         />
-        <Text style={styles.forgotPasswordText}>He oblidat la meva contrasenya</Text>
       </View>
-      <Button
-        title="Iniciar Sessió"
-        onPress={handleIniciarSesion}
-        color="#F08080"
-      />
+      <TouchableOpacity 
+        style={styles.loginButton} 
+        onPress={handleIniciarSesion} // Navega al hacer clic
+      >
+        <Text style={styles.loginButtonText}>Iniciar Sessió</Text> 
+      </TouchableOpacity>
     </View>
   );
 };
@@ -71,56 +85,59 @@ const Login = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start', // Asegura que los elementos se alineen al principio
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: 'white', // Fondo blanco
+    backgroundColor: 'white',
   },
   header: {
     width: '100%',
-    height: 300, // Ajustar la altura del contenedor de la imagen
-    overflow: 'hidden', // Asegura que la imagen no se desborde
+    height: 300,
+    overflow: 'hidden',
   },
   logo: {
-    width: '100%', // Hace que la imagen ocupe el ancho completo
-    height: '100%', // Hace que la imagen ocupe el alto completo del contenedor
+    width: '100%',
+    height: '100%',
   },
   formContainer: {
-    backgroundColor: 'lightgray', // Fondo gris claro
+    backgroundColor: 'lightgray',
     padding: 20,
     borderRadius: 20,
-    marginBottom: 20, // Espacio entre el formulario y el botón
-    width: '70%', // Ajusta el ancho del formulario a un 70%
-    minHeight: 270, // Aumenta la altura mínima del formulario
-    alignItems: 'center', // Centra horizontalmente el contenido
-    justifyContent: 'center', // Centra verticalmente el contenido
-    marginTop: 40, // Agrega margen superior entre la imagen y el formulario
+    marginBottom: 20,
+    width: '70%',
+    minHeight: 270,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
   },
   buttonRectangle: {
-    width: '100%', // Ajusta el ancho del rectángulo al 100%
-    backgroundColor: '#F08080', // Color de fondo del rectángulo
-    borderRadius: 10, // Bordes redondeados
-    paddingVertical: 10, // Espaciado vertical
-    alignItems: 'center', // Centra horizontalmente el contenido
-    marginBottom: 20, // Espacio entre el rectángulo y el resto del contenido
+    width: '100%',
+    backgroundColor: '#F08080',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    width: '100%', // Asegura que el contenedor de botones use el ancho completo
+    width: '100%',
   },
   button: {
-    backgroundColor: 'transparent', // Color de fondo del botón (transparente para ver el rectángulo)
+    backgroundColor: 'transparent',
     borderRadius: 10,
     padding: 10,
-    width: '45%', // Ajusta el ancho del botón
-    alignItems: 'center', // Centra el texto dentro del botón
+    width: '45%',
+    alignItems: 'center',
   },
   buttonSelected: {
-    backgroundColor: '#FF6347', // Cambiar el color del botón seleccionado (ej. Tomato)
+    backgroundColor: '#FF6347',
+  },
+  buttonTransparent: {
+    opacity: 0.3,
   },
   buttonText: {
     fontSize: 16,
-    color: 'white', // Color del texto
+    color: 'black', // Cambiado a negro
   },
   input: {
     height: 40,
@@ -128,13 +145,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingLeft: 10,
-    width: '100%', // Asegura que los inputs usen el ancho completo
+    width: '100%',
   },
-  forgotPasswordText: {
-    fontSize: 12,
-    color: 'red',
-    textAlign: 'center',
-    marginTop: 0,
+  loginButton: {
+    backgroundColor: '#F08080',
+    padding: 10,
+    borderRadius: 10,
+    width: '70%',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  loginButtonText: {
+    color: 'black',
+    fontSize: 16,
   },
 });
 
