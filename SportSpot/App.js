@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Inici from './Screens/Inici';
+import Inici from './Screens/Inici'; // Correcto si Inici.js está en la carpeta Screens
 import Login from './Screens/Login';
 import Register from './Screens/Register';
 import MenuPrincipal from './Screens/MenuPrincipal';

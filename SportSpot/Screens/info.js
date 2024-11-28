@@ -1,10 +1,11 @@
+// Info.js en la carpeta Screens
 import React from 'react';
 import { View, Text } from 'react-native';
 
 const Info = () => {
   return (
     <View>
-      <Text>Menu Principal</Text>
+      <Text>Información de la aplicación</Text>
     </View>
   );
 };

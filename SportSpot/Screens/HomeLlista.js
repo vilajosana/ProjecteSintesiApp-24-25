@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import FSection from '../components/FSection';
-import Toast from 'react-native-toast-message'; // Importar Toast
+import Toast from 'react-native-toast-message';
 
 export default function HomeLlista({ navigation }) {
     const [locations, setLocations] = useState([
