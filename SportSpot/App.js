@@ -1,16 +1,16 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Inici from './Screens/Inici'; // Correcto si Inici.js está en la carpeta Screens
+import Inici from './Screens/inici'; // Correcto si Inici.js está en la carpeta Screens
 import Login from './Screens/Login';
 import Register from './Screens/Register';
 import MenuPrincipal from './Screens/MenuPrincipal';
-import AfegirNovaUbicacio from './Screens/AfegirNovaUbicacio';
+import AfegirNovaUbicacio from './Screens/afegirnovaubicacio';
 import HomeLlista from './Screens/HomeLlista';
-import Info from './Screens/Info';
-import Preferits from './Screens/Preferits';
-import Ressenyes from './Screens/Ressenyes';
-import Usuari from './Screens/Usuari';
+import Info from './Screens/info';
+import Preferits from './Screens/preferits';
+import Ressenyes from './Screens/ressenyes';
+import Usuari from './Screens/usuari';
 import InformacionFicha from './Screens/InformacionFicha';  // Corregir la ruta aquí
 
 const Stack = createNativeStackNavigator();

@@ -1,4 +1,4 @@
-import React from 'react';
+    import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 import FSection from '../components/FSection';
 import { MaterialIcons, FontAwesome, Entypo } from '@expo/vector-icons';
