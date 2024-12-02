@@ -37,8 +37,7 @@ export default function Info({ navigation }) {
     };
 
     return (
-        <View style={styles.container}>
-            {/* Capçalera amb botó de tornada */}
+        <View style={{ flex: 1 }}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
                     <Ionicons name="arrow-back" size={24} color="black" />
@@ -46,19 +45,21 @@ export default function Info({ navigation }) {
                 <Text style={styles.headerTitle}>Configuració</Text>
             </View>
 
-            {/* Botó d'Informació a la part superior */}
             <View style={styles.content}>
-                <TouchableOpacity onPress={navigateToAllInfo} style={styles.rectangularButton}>
-                    <Text style={styles.buttonText}>Informació</Text>
+                {/* Botó per anar a la pantalla Allinfo */}
+                <TouchableOpacity onPress={navigateToAllInfo} style={styles.button}>
+                    <Text style={styles.buttonText}>Veure tota la informació</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Botó per tornar a la pàgina principal */}
-            <View style={styles.centeredBottomButtonContainer}>
+            <View style={styles.centeredButtonContainer}>
                 <TouchableOpacity onPress={handleGoBackToMain} style={styles.button}>
                     <Text style={styles.buttonText}>Tornar a la pàgina principal</Text>
                 </TouchableOpacity>
             </View>
+
+            <View style={styles.space} />
 
             {/* Secció de navegació a la part inferior amb els mateixos botons */}
             <View style={styles.section}>
@@ -69,19 +70,12 @@ export default function Info({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: 'lightgrey', // Fons de la pantalla
-        alignItems: 'center',
-    },
     header: {
+        backgroundColor: 'grey',
+        padding: 10,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'grey',
-        paddingVertical: 10,
-        marginTop: 50,  // Afegim un margin superior per separar de la part superior
-        width: '100%',  // Amplada completa
+        justifyContent: 'flex-start',
     },
     headerTitle: {
         fontSize: 24,
@@ -93,10 +87,45 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     content: {
-        flex: 1, // Es deixa una part superior per al botó de "Informació"
-        justifyContent: 'flex-start',  // Col·loca el botó al principi
-        alignItems: 'center',  // Centra el botó horitzontalment
-        paddingTop: 20,  // Separació superior per al botó
+        flex: 7,
+        backgroundColor: 'lightgrey',
+        padding: 20,
+        marginTop: 50, // Afegim un marginTop de 50 per separar el contingut superior
+        alignItems: 'center',
+    },
+    configText: {
+        fontSize: 18,
+        color: 'black',
+        textAlign: 'center',
+    },
+    footer: {
+        backgroundColor: 'grey',
+        flexDirection: 'row',
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    circleIcon: {
+        borderWidth: 4,
+        borderColor: 'black',
+        borderRadius: 50,
+        padding: 6,
+        marginLeft: 10,
+    },
+    footerText: {
+        fontSize: 16,
+        color: 'black',
+    },
+    section: {
+        flex: 1,
+    },
+    space: {
+        height: 20, // Afegim espai entre seccions
+    },
+    centeredButtonContainer: {
+        flex: 1,  // Això fa que ocupi tota l'alçada disponible
+        justifyContent: 'center', // Centra verticalment el botó
+        alignItems: 'center', // Centra horitzontalment el botó
     },
     button: {
         backgroundColor: '#FF6347', // Color de fons del botó
@@ -105,31 +134,12 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderWidth: 1,
         borderColor: '#FF6347',
+        marginBottom: 20, // Opcional per afegir espai entre els botons
     },
     buttonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-    },
-    rectangularButton: {
-        backgroundColor: '#808080', // Color gris per al botó
-        paddingVertical: 15,
-        paddingHorizontal: 40, // Ampliem el padding horitzontal per mantenir la forma rectangular
-        borderRadius: 20,  // Puntes arrodonides però no circulars
-        borderWidth: 1,
-        borderColor: '#808080', // Bordes del mateix color gris
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    centeredBottomButtonContainer: {
-        flex: 1, // Fa que aquest contenidor ocupi tota la seva alçada disponible
-        justifyContent: 'flex-end', // Col·loca el botó a la part inferior
-        alignItems: 'center', // Centra el botó horitzontalment
-        marginBottom: 30, // Opcional per deixar un espai entre el botó i la part inferior de la pantalla
-        width: '100%', // Amplada completa
-    },
-    section: {
-        flex: 1,
     },
 });

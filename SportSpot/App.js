@@ -11,7 +11,9 @@ import Info from './Screens/info';
 import Preferits from './Screens/preferits';
 import Ressenyes from './Screens/ressenyes';
 import Usuari from './Screens/usuari';
-import InformacionFicha from './Screens/InformacionFicha';  // Corregir la ruta aquí
+import InformacionFicha from './Screens/InformacionFicha';
+import Allinfo from './Screens/Allinfo';  // Corregir la ruta aquí
+
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +32,8 @@ export default function App() {
                 <Stack.Screen name="Ressenyes" component={Ressenyes} options={{ headerShown: false }} />
                 <Stack.Screen name="Usuari" component={Usuari} options={{ headerShown: false }} />
                 <Stack.Screen name="InformacionFicha" component={InformacionFicha} options={{ headerShown: false }} />
+                <Stack.Screen name="Allinfo" component={Allinfo} options={{ headerShown: false }} />
+
             </Stack.Navigator>
         </NavigationContainer>
     );

@@ -37,18 +37,20 @@ export default function MenuPrincipal({ navigation }) {
         console.log("Ícono de filtro presionado");
     };
 
+    const handleIconPress = () => {
+        // Navegar a la pantalla Info.js quan es pressionen els tres punts
+        console.log("Ícono de los tres puntos presionado");
+        navigation.navigate("Info"); // Aquí canviem a la ruta Info
+    };
+
     const { width, height } = Dimensions.get('window');
 
     const handleFooterPress = () => {
         console.log("Texto del footer presionado");
     };
 
-    const handleIconPress = () => {
-        console.log("Ícono de los tres puntos presionado");
-    };
-
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingTop: 30 }}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleIconPress} style={styles.headerIcon}>
                     <Ionicons name="ellipsis-vertical" size={24} color="black" />
@@ -116,13 +118,13 @@ export default function MenuPrincipal({ navigation }) {
                     </View>
                 )}
 
-{isFilterVisible && (
-    <Filter 
-        selectedZones={selectedZones} 
-        setSelectedZones={setSelectedZones} 
-        onClose={() => setFilterVisible(false)}  // Aquí es donde se cierra el filtro
-    />
-)}
+                {isFilterVisible && (
+                    <Filter 
+                        selectedZones={selectedZones} 
+                        setSelectedZones={setSelectedZones} 
+                        onClose={() => setFilterVisible(false)} 
+                    />
+                )}
 
             </View>
             <TouchableOpacity style={styles.footer} onPress={handleFooterPress}>
@@ -262,4 +264,7 @@ const styles = StyleSheet.create({
         left: '50%',
         transform: [{ translateX: -15 }],
     },
+    space: {
+        height: 20, // Afegim espai entre seccions
+    }
 });

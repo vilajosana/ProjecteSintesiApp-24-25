@@ -90,7 +90,7 @@ export default function HomeLlista({ navigation }) {
     );
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, marginTop: 50 }}> {/* Aquí afegim el marginTop */}
             <View style={styles.headerContainer}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.headerIcon}>
