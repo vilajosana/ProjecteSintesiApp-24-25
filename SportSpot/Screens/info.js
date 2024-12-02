@@ -71,7 +71,7 @@ export default function Info({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'lightgrey', // Fons de la pantalla
+        backgroundColor: 'white', // Fons de la pantalla
         alignItems: 'center',
     },
     header: {
@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
         alignItems: 'center', // Centra el botó horitzontalment
         marginBottom: 30, // Opcional per deixar un espai entre el botó i la part inferior de la pantalla
         width: '100%', // Amplada completa
+        
     },
     section: {
         flex: 1,

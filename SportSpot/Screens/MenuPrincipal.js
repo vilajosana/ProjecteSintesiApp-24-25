@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         alignItems: 'center',
     },
-    button: {
+    button: {   
         backgroundColor: 'transparent',
         borderRadius: 10,
         padding: 10,

@@ -1,145 +1,182 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FSection from '../components/FSection'; // Si vols reutilitzar aquest component
 
 export default function Info({ navigation }) {
-    const [isFilterVisible, setFilterVisible] = useState(false);
-
-    const handlePress = (id) => {
-        console.log("Han clicat al botó " + id);
-        if (id === 1) {
-            navigation.navigate("MenuPrincipal");
-        } else if (id === 2) {
-            navigation.navigate("Preferits");
-        } else if (id === 3) {
-            navigation.navigate("AfegirNovaUbicacio");
-        } else if (id === 4) {
-            navigation.navigate("Usuari");
-        }
-    };
-
-    const handleFilterPress = () => {
-        setFilterVisible(!isFilterVisible);
-        console.log("Ícono de filtro presionado");
-    };
-
-    const { width, height } = Dimensions.get('window');
-
-    // Funció per tornar a la pàgina principal
-    const handleGoBackToMain = () => {
-        navigation.navigate("MenuPrincipal");
-    };
-
-    // Funció per navegar a la pantalla Allinfo
-    const navigateToAllInfo = () => {
-        navigation.navigate("Allinfo");
-    };
+    const { width } = Dimensions.get('window');
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={styles.container}>
+            {/* Icona superior esquerra */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
                     <Ionicons name="arrow-back" size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Configuració</Text>
             </View>
 
+            {/* Imatge del corredor i seccions */}
             <View style={styles.content}>
-                {/* Botó per anar a la pantalla Allinfo */}
-                <TouchableOpacity onPress={navigateToAllInfo} style={styles.button}>
-                    <Text style={styles.buttonText}>Veure tota la informació</Text>
-                </TouchableOpacity>
+                {/* Imatge del corredor */}
+                <View style={styles.runnerImage}>
+                    <Ionicons name="walk-outline" size={80} color="black" />
+                </View>
+
+                {/* Secció de Social Media */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Social media</Text>
+                    <View style={styles.iconRow}>
+                        <Ionicons name="logo-twitter" size={32} color="black" style={styles.icon} />
+                        <Ionicons name="logo-instagram" size={32} color="black" style={styles.icon} />
+                        <Ionicons name="logo-facebook" size={32} color="black" style={styles.icon} />
+                    </View>
+                </View>
+
+                {/* Secció de creadors */}
+                <View style={[styles.section, styles.creatorsSection]}>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>Creadors</Text>
+                    </TouchableOpacity>
+                    <View style={styles.creatorsRow}>
+                        <View style={styles.creatorItem}>
+                            <Ionicons name="person-circle-outline" size={32} color="black" />
+                            <Text>Gerard</Text>
+                        </View>
+                        <View style={styles.creatorItem}>
+                            <Ionicons name="person-circle-outline" size={32} color="black" />
+                            <Text>Biel</Text>
+                        </View>
+                        <View style={styles.creatorItem}>
+                            <Ionicons name="person-circle-outline" size={32} color="black" />
+                            <Text>Eric</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Secció de Contactar */}
+                <View style={styles.section}>
+                    <TouchableOpacity style={styles.button}>
+                        <Text style={styles.buttonText}>Contactar</Text>
+                    </TouchableOpacity>
+                    <View style={styles.contactInfo}>
+                        <Text style={styles.contactText}>📞 999 999 999</Text>
+                        <Text style={styles.contactText}>✉️ holaeric@rubias.com</Text>
+                        <Text style={styles.contactText}>📍 Carrer de Folch i Torres, 5, 13, 08241 Manresa (Barcelona)</Text>
+                    </View>
+                </View>
             </View>
 
-            {/* Botó per tornar a la pàgina principal */}
-            <View style={styles.centeredButtonContainer}>
-                <TouchableOpacity onPress={handleGoBackToMain} style={styles.button}>
-                    <Text style={styles.buttonText}>Tornar a la pàgina principal</Text>
+            {/* Barra de navegació inferior */}
+            <View style={styles.footer}>
+                <TouchableOpacity onPress={() => navigation.navigate("MenuPrincipal")}>
+                    <Ionicons name="home-outline" size={32} color="black" />
                 </TouchableOpacity>
-            </View>
-
-            <View style={styles.space} />
-
-            {/* Secció de navegació a la part inferior amb els mateixos botons */}
-            <View style={styles.section}>
-                <FSection currentSection={1} onPress={handlePress} navigation={navigation} />
+                <TouchableOpacity onPress={() => navigation.navigate("Preferits")}>
+                    <Ionicons name="heart-outline" size={32} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate("AfegirNovaUbicacio")}>
+                    <Ionicons name="add-circle-outline" size={32} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate("Usuari")}>
+                    <Ionicons name="person-outline" size={32} color="black" />
+                </TouchableOpacity>
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'white',
+    },
     header: {
-        backgroundColor: 'grey',
         padding: 10,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-start',
     },
-    headerTitle: {
-        fontSize: 24,
-        color: 'black',
-        textAlign: 'center',
-        flex: 1,
-    },
     headerIcon: {
         padding: 10,
     },
     content: {
-        flex: 7,
-        backgroundColor: 'lightgrey',
-        padding: 20,
-        marginTop: 50, // Afegim un marginTop de 50 per separar el contingut superior
+        flex: 1,
+        paddingHorizontal: 20,
         alignItems: 'center',
     },
-    configText: {
-        fontSize: 18,
-        color: 'black',
-        textAlign: 'center',
-    },
-    footer: {
-        backgroundColor: 'grey',
-        flexDirection: 'row',
-        padding: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    circleIcon: {
-        borderWidth: 4,
-        borderColor: 'black',
-        borderRadius: 50,
-        padding: 6,
-        marginLeft: 10,
-    },
-    footerText: {
-        fontSize: 16,
-        color: 'black',
+    runnerImage: {
+        marginVertical: 20,
     },
     section: {
-        flex: 1,
+        marginTop: 20,
+        width: '100%',
+        alignItems: 'center',
     },
-    space: {
-        height: 20, // Afegim espai entre seccions
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
     },
-    centeredButtonContainer: {
-        flex: 1,  // Això fa que ocupi tota l'alçada disponible
-        justifyContent: 'center', // Centra verticalment el botó
-        alignItems: 'center', // Centra horitzontalment el botó
+    iconRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        width: '60%',
+    },
+    icon: {
+        marginHorizontal: 10,
+    },
+    creatorsSection: {
+        marginTop: 30,
+    },
+    creatorsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        width: '80%',
+        marginTop: 10,
+    },
+    creatorItem: {
+        alignItems: 'center',
     },
     button: {
-        backgroundColor: '#FF6347', // Color de fons del botó
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#FF6347',
-        marginBottom: 20, // Opcional per afegir espai entre els botons
+        backgroundColor: '#FF6347',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 20,
     },
     buttonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    contactInfo: {
+        marginTop: 10,
+        alignItems: 'center',
+    },
+    contactText: {
+        fontSize: 14,
+        marginVertical: 5,
         textAlign: 'center',
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        padding: 20,  // Aumenta el padding para que el recuadro sea más grande
+        borderColor: 'grey',
+    
+        // Estils afegits per al recuadre:
+        backgroundColor: 'white', // Fons blanc
+        borderRadius: 20, // Arrodonir cantonades
+        marginHorizontal: 10, // Màrgin lateral
+        shadowColor: '#000', // Color de l'ombra
+        shadowOffset: { width: 0, height: 2 }, // Offset de l'ombra
+        shadowOpacity: 0.2, // Opacitat de l'ombra
+        shadowRadius: 5, // Difusió de l'ombra
+        elevation: 5, // Ombra per a Android
+        marginBottom: 0, // Elimina el marge inferior
+        position: 'absolute', // Col·loca el footer de manera absoluta
+        bottom: 20, // Ajusta la distància des de la part inferior de la pantalla
+        left: 0,
+        right: 0,
+        height: 80,  // Aumenta la altura del recuadro para hacerlo más grande
     },
 });

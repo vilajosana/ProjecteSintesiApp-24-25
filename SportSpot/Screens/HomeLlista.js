@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 10,
-        backgroundColor: 'lightgray',
+        backgroundColor: 'lightgrey',
         borderTopWidth: 1,
         borderTopColor: 'gray',
     },
