@@ -1,24 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import auth from '@react-native-firebase/auth'; // Afegir Firebase Auth
 
 const Register = () => {
   const [usuario, setUsuario] = useState('');
   const [contrasenya, setContrasenya] = useState('');
   const [repetirContrasenya, setRepetirContrasenya] = useState('');
-  const [selectedButton, setSelectedButton] = useState('signUp'); // Sign Up seleccionado por defecto
+  const [selectedButton, setSelectedButton] = useState('signUp'); // Sign Up seleccionat per defecte
   const navigation = useNavigation();
 
-  useFocusEffect(
-    React.useCallback(() => {
-      setSelectedButton('signUp'); // Asegura que siempre esté marcado Sign Up al enfocarse en la pantalla
-    }, [])
-  );
+  const handleRegister = async () => {
+    if (contrasenya !== repetirContrasenya) {
+      Alert.alert('Error', 'Les contrasenyes no coincideixen.');
+      return;
+    }
 
-  const handleIniciarSesion = () => {
-    console.log('Usuario:', usuario);
-    console.log('Contraseña:', contrasenya);
-    console.log('Repetir Contraseña:', repetirContrasenya);
+    try {
+      await auth().createUserWithEmailAndPassword(usuario, contrasenya);
+      Alert.alert('Èxit', 'Usuari registrat i sessió iniciada!');
+      navigation.navigate('MenuPrincipal');
+    } catch (error) {
+      Alert.alert('Error', 'No es pot registrar l\'usuari. Revisa les dades.');
+    }
   };
 
   return (
@@ -38,10 +42,7 @@ const Register = () => {
                 selectedButton === 'signIn' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signIn' && styles.buttonTransparent
               ]} 
-              onPress={() => {
-                setSelectedButton('signIn');
-                navigation.navigate('Login', { from: 'Register' });
-              }}
+              onPress={() => navigation.navigate('Login', { from: 'Register' })}
             >
               <Text style={styles.buttonText}>Sign in</Text>
             </TouchableOpacity>
@@ -79,10 +80,7 @@ const Register = () => {
       </View>
       <TouchableOpacity 
         style={styles.loginButton} 
-        onPress={() => {
-          handleIniciarSesion();
-          navigation.navigate('Login');
-        }}
+        onPress={handleRegister}
       >
         <Text style={styles.loginButtonText}>Registrar-se</Text> 
       </TouchableOpacity>

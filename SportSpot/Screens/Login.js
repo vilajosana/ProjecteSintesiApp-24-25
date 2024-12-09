@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import auth from '@react-native-firebase/auth'; // Afegir Firebase Auth
 
 const Login = () => {
   const [usuario, setUsuario] = useState('');
   const [contrasenya, setContrasenya] = useState('');
-  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionado por defecto
+  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionat per defecte
   const navigation = useNavigation();
 
   useFocusEffect(
     React.useCallback(() => {
-      setSelectedButton('signIn'); // Asegura que siempre esté marcado Sign In al enfocarse en la pantalla
+      setSelectedButton('signIn'); // Asegura que sempre estigui marcat Sign In al enfocar la pantalla
     }, [])
   );
 
-  const handleIniciarSesion = () => {
-    console.log('Usuario:', usuario);
-    console.log('Contraseña:', contrasenya);
-    navigation.navigate('MenuPrincipal'); // Navega a MenuPrincipal
+  const handleIniciarSesion = async () => {
+    try {
+      await auth().signInWithEmailAndPassword(usuario, contrasenya);
+      navigation.navigate('MenuPrincipal'); // Navega a MenuPrincipal
+    } catch (error) {
+      Alert.alert('Error', 'Credencials incorrectes o usuari no existent.');
+    }
   };
 
   return (
@@ -37,10 +41,7 @@ const Login = () => {
                 selectedButton === 'signIn' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signIn' && styles.buttonTransparent
               ]} 
-              onPress={() => {
-                setSelectedButton('signIn');
-                console.log('Sign in pressed');
-              }}
+              onPress={() => setSelectedButton('signIn')}
             >
               <Text style={styles.buttonText}>Sign in</Text>
             </TouchableOpacity>
@@ -49,10 +50,7 @@ const Login = () => {
                 selectedButton === 'signUp' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signUp' && styles.buttonTransparent
               ]} 
-              onPress={() => {
-                setSelectedButton('signUp');
-                navigation.navigate('Register', { from: 'Login' });
-              }}
+              onPress={() => navigation.navigate('Register', { from: 'Login' })}
             >
               <Text style={styles.buttonText}>Sign up</Text>
             </TouchableOpacity>
@@ -74,7 +72,7 @@ const Login = () => {
       </View>
       <TouchableOpacity 
         style={styles.loginButton} 
-        onPress={handleIniciarSesion} // Navega al hacer clic
+        onPress={handleIniciarSesion}
       >
         <Text style={styles.loginButtonText}>Iniciar Sessió</Text> 
       </TouchableOpacity>
