@@ -1,27 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import auth from '@react-native-firebase/auth'; // Afegir Firebase Auth
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { auth } from '../utils/firebaseConfig'; // Importa el teu fitxer de configuració de Firebase
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Funció per iniciar sessió amb un usuari
 
-const Login = () => {
-  const [usuario, setUsuario] = useState('');
-  const [contrasenya, setContrasenya] = useState('');
-  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionat per defecte
-  const navigation = useNavigation();
+const Login = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionado por defecto
 
-  useFocusEffect(
-    React.useCallback(() => {
-      setSelectedButton('signIn'); // Asegura que sempre estigui marcat Sign In al enfocar la pantalla
-    }, [])
-  );
-
-  const handleIniciarSesion = async () => {
-    try {
-      await auth().signInWithEmailAndPassword(usuario, contrasenya);
-      navigation.navigate('MenuPrincipal'); // Navega a MenuPrincipal
-    } catch (error) {
-      Alert.alert('Error', 'Credencials incorrectes o usuari no existent.');
+  const handleLogin = () => {
+    if (email === '' || password === '') {
+      Alert.alert('Error', 'Per favor, omple tots els camps');
+      return;
     }
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        Alert.alert('Successful Login', 'Welcome!!');
+        navigation.navigate('MenuPrincipal'); // Redirigeix a la pàgina principal després de fer login
+      })
+      .catch((error) => {
+        Alert.alert('Error', error.message);
+      });
   };
 
   return (
@@ -37,20 +38,25 @@ const Login = () => {
         <View style={styles.buttonRectangle}>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, 
+              style={[
+                styles.button, 
                 selectedButton === 'signIn' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signIn' && styles.buttonTransparent
-              ]} 
-              onPress={() => setSelectedButton('signIn')}
+              ]}
+              onPress={() => {
+                setSelectedButton('signIn');
+                navigation.navigate('Login');
+              }}
             >
               <Text style={styles.buttonText}>Sign in</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, 
+              style={[
+                styles.button, 
                 selectedButton === 'signUp' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signUp' && styles.buttonTransparent
-              ]} 
-              onPress={() => navigation.navigate('Register', { from: 'Login' })}
+              ]}
+              onPress={() => navigation.navigate('Register')} // Redirigir a Register
             >
               <Text style={styles.buttonText}>Sign up</Text>
             </TouchableOpacity>
@@ -58,23 +64,23 @@ const Login = () => {
         </View>
         <TextInput
           style={styles.input}
-          placeholder="Usuari"
-          onChangeText={setUsuario}
-          value={usuario}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          placeholderTextColor="#B0B0B0"
         />
         <TextInput
           style={styles.input}
-          placeholder="Contrasenya"
-          onChangeText={setContrasenya}
-          value={contrasenya}
-          secureTextEntry={true} 
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholderTextColor="#B0B0B0"
         />
       </View>
-      <TouchableOpacity 
-        style={styles.loginButton} 
-        onPress={handleIniciarSesion}
-      >
-        <Text style={styles.loginButtonText}>Iniciar Sessió</Text> 
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <Text style={styles.loginButtonText}>Log in</Text>
       </TouchableOpacity>
     </View>
   );
@@ -83,9 +89,9 @@ const Login = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    justifyContent: 'center', // Centrado verticalmente
+    alignItems: 'center', // Centrado horizontalmente
+    backgroundColor: '#F5F5F5', // Fondo gris claro
   },
   header: {
     width: '100%',
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     marginBottom: 20,
-    width: '70%',
+    width: '80%', // Ancho del formulario
     minHeight: 270,
     alignItems: 'center',
     justifyContent: 'center',
@@ -128,25 +134,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonSelected: {
-    backgroundColor: '#FF6347',
+    backgroundColor: '#FF6347', // Rojo más intenso
   },
   buttonTransparent: {
-    opacity: 0.3,
+    opacity: 0.3, // Transparente para los botones no seleccionados
   },
   buttonText: {
     fontSize: 16,
-    color: 'black', // Cambiado a negro
+    color: 'black', // Texto en negro
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    height: 50,
+    borderColor: '#D1D1D1', // Borde gris suave
     borderWidth: 1,
-    marginBottom: 10,
-    paddingLeft: 10,
-    width: '100%',
+    borderRadius: 10, // Bordes redondeados
+    marginBottom: 15,
+    paddingLeft: 15,
+    backgroundColor: '#F9F9F9', // Fondo gris claro en los inputs
+    fontSize: 16,
+    width: '100%', // Asegura que el campo ocupe todo el espacio disponible
   },
   loginButton: {
-    backgroundColor: '#F08080',
+    backgroundColor: '#F08080', // Color de botón rosado
     padding: 10,
     borderRadius: 10,
     width: '70%',
@@ -154,7 +163,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   loginButtonText: {
-    color: 'black',
+    color: 'black', // Texto en negro
+    fontSize: 16,
+  },
+  registerText: {
+    color: '#F08080', // Texto de registro en rosado
+    textAlign: 'center',
+    marginTop: 15,
     fontSize: 16,
   },
 });

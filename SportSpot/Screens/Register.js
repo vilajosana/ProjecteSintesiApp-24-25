@@ -1,28 +1,42 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import auth from '@react-native-firebase/auth'; // Afegir Firebase Auth
+import { firebase } from '../utils/firebaseConfig'; // Importa el teu fitxer de configuració de Firebase
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
-const Register = () => {
-  const [usuario, setUsuario] = useState('');
-  const [contrasenya, setContrasenya] = useState('');
-  const [repetirContrasenya, setRepetirContrasenya] = useState('');
-  const [selectedButton, setSelectedButton] = useState('signUp'); // Sign Up seleccionat per defecte
-  const navigation = useNavigation();
+const Register = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [selectedButton, setSelectedButton] = useState('signUp'); // Sign Up seleccionado por defecto
 
-  const handleRegister = async () => {
-    if (contrasenya !== repetirContrasenya) {
-      Alert.alert('Error', 'Les contrasenyes no coincideixen.');
+  const handleRegister = () => {
+    if (email === '' || password === '' || confirmPassword === '') {
+      Alert.alert('Error', 'Please fill all fields');
       return;
     }
 
-    try {
-      await auth().createUserWithEmailAndPassword(usuario, contrasenya);
-      Alert.alert('Èxit', 'Usuari registrat i sessió iniciada!');
-      navigation.navigate('MenuPrincipal');
-    } catch (error) {
-      Alert.alert('Error', 'No es pot registrar l\'usuari. Revisa les dades.');
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
     }
+
+    const auth = getAuth();
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        // Usuari registrat correctament, inicia sessió automàticament
+        Alert.alert('Welcome!', 'Your account was created and logged in.');
+        navigation.navigate('MenuPrincipal'); // Redirigeix a la pàgina principal (Home)
+      })
+      .catch((error) => {
+        if (error.code === 'auth/email-already-in-use') {
+          // Si l'usuari ja existeix, mostra un missatge
+          Alert.alert('Existing user', 'This email is already registered...');
+        } else {
+          Alert.alert('Error', error.message);
+        }
+      });
   };
 
   return (
@@ -38,20 +52,22 @@ const Register = () => {
         <View style={styles.buttonRectangle}>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, 
+              style={[
+                styles.button, 
                 selectedButton === 'signIn' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signIn' && styles.buttonTransparent
-              ]} 
-              onPress={() => navigation.navigate('Login', { from: 'Register' })}
+              ]}
+              onPress={() => navigation.navigate('Login')} // Redirigir a Login
             >
               <Text style={styles.buttonText}>Sign in</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, 
+              style={[
+                styles.button, 
                 selectedButton === 'signUp' && styles.buttonSelected,
                 selectedButton !== null && selectedButton !== 'signUp' && styles.buttonTransparent
-              ]} 
-              onPress={() => setSelectedButton('signUp')}
+              ]}
+              onPress={() => setSelectedButton('signUp')} // Permite seleccionar el "Sign Up"
             >
               <Text style={styles.buttonText}>Sign up</Text>
             </TouchableOpacity>
@@ -59,30 +75,31 @@ const Register = () => {
         </View>
         <TextInput
           style={styles.input}
-          placeholder="Usuari"
-          onChangeText={setUsuario}
-          value={usuario}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          placeholderTextColor="#B0B0B0"
         />
         <TextInput
           style={styles.input}
-          placeholder="Contrasenya"
-          onChangeText={setContrasenya}
-          value={contrasenya}
-          secureTextEntry={true} 
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholderTextColor="#B0B0B0"
         />
         <TextInput
           style={styles.input}
-          placeholder="Repetir Contrasenya"
-          onChangeText={setRepetirContrasenya}
-          value={repetirContrasenya}
-          secureTextEntry={true}
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          placeholderTextColor="#B0B0B0"
         />
       </View>
-      <TouchableOpacity 
-        style={styles.loginButton} 
-        onPress={handleRegister}
-      >
-        <Text style={styles.loginButtonText}>Registrar-se</Text> 
+      <TouchableOpacity style={styles.loginButton} onPress={handleRegister}>
+        <Text style={styles.loginButtonText}>Register</Text>
       </TouchableOpacity>
     </View>
   );
@@ -109,7 +126,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     marginBottom: 20,
-    width: '70%',
+    width: '80%', // Ancho del formulario
     minHeight: 320,
     alignItems: 'center',
     justifyContent: 'center',
@@ -117,7 +134,7 @@ const styles = StyleSheet.create({
   },
   buttonRectangle: {
     width: '100%',
-    backgroundColor: '#F08080',
+    backgroundColor: '#F08080', // Color de fondo rosado
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
@@ -136,25 +153,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonSelected: {
-    backgroundColor: '#FF6347',
+    backgroundColor: '#FF6347', // Rojo cuando está seleccionado
   },
   buttonTransparent: {
-    opacity: 0.3,
+    opacity: 0.3, // Transparente cuando no está seleccionado
   },
   buttonText: {
     fontSize: 16,
-    color: 'black', // Cambiado a negro
+    color: 'black', // Color negro para el texto de los botones
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    height: 50,
+    borderColor: '#D1D1D1', // Borde gris suave
     borderWidth: 1,
-    marginBottom: 10,
-    paddingLeft: 10,
-    width: '100%',
+    borderRadius: 10, // Bordes redondeados
+    marginBottom: 15,
+    paddingLeft: 15,
+    backgroundColor: '#F9F9F9', // Fondo gris claro en los inputs
+    fontSize: 16,
+    width: '100%', // Asegura que el campo ocupe todo el espacio disponible
   },
   loginButton: {
-    backgroundColor: '#F08080',
+    backgroundColor: '#F08080', // Botón de registro con color rosado
     padding: 10,
     borderRadius: 10,
     width: '70%',
@@ -162,7 +182,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   loginButtonText: {
-    color: 'black', // Cambiado a negro
+    color: 'black', // Texto en negro
     fontSize: 16,
   },
 });
