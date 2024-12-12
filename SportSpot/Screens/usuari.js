@@ -1,27 +1,53 @@
-    import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions } from 'react-native';
+import { getAuth, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../utils/firebaseConfig"; // Assegura't de tenir configurat Firebase correctament
 import FSection from '../components/FSection';
 import { MaterialIcons, FontAwesome, Entypo } from '@expo/vector-icons';
 
 const Usuari = ({ navigation }) => {
-    const handlePress = (id) => {
-        console.log("Han clicat al botó " + id);
-        if (id === 1) {
-            navigation.navigate("MenuPrincipal");
-        } else if (id === 2) {
-            navigation.navigate("Preferits");
-        } else if (id === 3) {
-            navigation.navigate("AfegirNovaUbicacio");
-        }
-    };
+    const [userData, setUserData] = useState({ name: '', surname: '', phone: '' });
+    const [isEditing, setIsEditing] = useState(false);
+    const auth = getAuth();
 
-    const handleLogout = () => {
-        console.log("Tancar Sessió");
-        navigation.popToTop(); // Regresa a la pantalla inicial (Inici)
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const user = auth.currentUser;
+
+            if (user) {
+                const userDocRef = doc(db, "Users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (userDoc.exists()) {
+                    setUserData(userDoc.data());
+                } else {
+                    console.log("No s'ha trobat el document de l'usuari.");
+                }
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            console.log("Sessió tancada correctament.");
+            navigation.popToTop();
+        } catch (error) {
+            console.error("Error tancant la sessió:", error);
+        }
     };
 
     const handleMenu = () => {
         console.log("Menu clicked");
+    };
+
+    const handleSave = () => {
+        console.log("Guardar dades:", userData);
+        setIsEditing(false);
+        // Aquí podries afegir el codi per actualitzar la informació a Firebase.
     };
 
     return (
@@ -29,9 +55,9 @@ const Usuari = ({ navigation }) => {
             <View style={styles.header}>
                 <TouchableOpacity 
                     style={styles.menuButton}
-                    onPress={handleMenu}
+                    onPress={() => navigation.navigate('MenuPrincipal')} // Navegar a HomePage
                 >
-                    <Entypo name="dots-three-vertical" size={24} color="black" />
+                    <Entypo name="home" size={24} color="black" />
                 </TouchableOpacity>
                 <Image 
                     source={require('../assets/user_profile.png')} 
@@ -47,25 +73,67 @@ const Usuari = ({ navigation }) => {
                 </View>
                 
                 <View style={styles.infoContainer}>
-                    <View style={styles.circularNameContainer}>
-                        <View style={styles.leftDot} />
-                        <Text style={styles.nameText}>Carlos</Text>
-                        <View style={styles.rightDot} />
-                    </View>
-                    <View style={styles.circularSurnameContainer}>
-                        <View style={styles.leftDotSurname} />
-                        <Text style={styles.surnameText}>Rodriguez Lopez</Text>
-                        <View style={styles.rightDotSurname} />
-                    </View>
-                    
+                    {isEditing ? (
+                        <TextInput 
+                            style={styles.editableInput}
+                            value={userData.name}
+                            onChangeText={(text) => setUserData({ ...userData, name: text })}
+                            placeholder="Nom"
+                        />
+                    ) : (
+                        <View style={styles.circularNameContainer}>
+                            <Text style={styles.nameText}>{userData.name || "Nom"}</Text>
+                        </View>
+                    )}
+
+                    {isEditing ? (
+                        <TextInput 
+                            style={styles.editableInput}
+                            value={userData.surname}
+                            onChangeText={(text) => setUserData({ ...userData, surname: text })}
+                            placeholder="Cognoms"
+                        />
+                    ) : (
+                        <View style={styles.circularSurnameContainer}>
+                            <Text style={styles.surnameText}>{userData.surname || "Cognoms"}</Text>
+                        </View>
+                    )}
+
                     <View style={styles.infoItem}>
                         <MaterialIcons name="email" size={20} color="black" style={styles.icon} />
-                        <Text style={styles.infoText}>carlos@gmail.com</Text>
+                        <Text style={styles.infoText}>{auth.currentUser?.email || "Correu electrònic"}</Text>
                     </View>
-                    <View style={styles.infoItem}>
-                        <FontAwesome name="phone" size={20} color="black" style={styles.icon} />
-                        <Text style={styles.infoText}>+34 622 680 126</Text>
-                    </View>
+
+                    {isEditing ? (
+                        <TextInput 
+                            style={styles.editableInput}
+                            value={userData.phone}
+                            onChangeText={(text) => setUserData({ ...userData, phone: text })}
+                            placeholder="Telèfon"
+                        />
+                    ) : (
+                        <View style={styles.infoItem}>
+                            <FontAwesome name="phone" size={20} color="black" style={styles.icon} />
+                            <Text style={styles.infoText}>{userData.phone || "Telèfon no disponible"}</Text>
+                        </View>
+                    )}
+
+                    {isEditing ? (
+                        <TouchableOpacity 
+                            style={styles.saveButton} 
+                            onPress={handleSave}
+                        >
+                            <Text style={styles.saveText}>Guardar</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity 
+                            style={styles.editButton} 
+                            onPress={() => setIsEditing(true)}
+                        >
+                            <Text style={styles.editText}>Editar</Text>
+                        </TouchableOpacity>
+                    )}
+
                     <TouchableOpacity 
                         style={styles.logoutButton} 
                         onPress={handleLogout}
@@ -75,7 +143,7 @@ const Usuari = ({ navigation }) => {
                 </View>
             </View>
             <View style={styles.footer}>
-                <FSection currentSection={4} onPress={handlePress} navigation={navigation} />
+                <FSection currentSection={4} onPress={(id) => console.log(`Secció ${id}`)} navigation={navigation} />
             </View>
         </View>
     );
@@ -138,27 +206,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 100,
         marginBottom: 5,
         alignItems: 'center',
-        position: 'relative',
-    },
-    leftDot: {
-        position: 'absolute',
-        top: '80%',
-        left: 20,
-        transform: [{ translateY: -5 }],
-        width: 10,
-        height: 10,
-        backgroundColor: 'white',
-        borderRadius: 5,
-    },
-    rightDot: {
-        position: 'absolute',
-        top: '80%',
-        right: 20,
-        transform: [{ translateY: -5 }],
-        width: 10,
-        height: 10,
-        backgroundColor: 'white',
-        borderRadius: 5,
     },
     circularSurnameContainer: {
         backgroundColor: '#e0e0e0',
@@ -167,27 +214,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 60,
         marginBottom: 10,
         alignItems: 'center',
-        position: 'relative',
-    },
-    leftDotSurname: {
-        position: 'absolute',
-        top: '80%',
-        left: 20,
-        transform: [{ translateY: -5 }],
-        width: 10,
-        height: 10,
-        backgroundColor: 'black',
-        borderRadius: 5,
-    },
-    rightDotSurname: {
-        position: 'absolute',
-        top: '80%',
-        right: 20,
-        transform: [{ translateY: -5 }],
-        width: 10,
-        height: 10,
-        backgroundColor: 'black',
-        borderRadius: 5,
     },
     nameText: {
         fontSize: 18,
@@ -238,6 +264,41 @@ const styles = StyleSheet.create({
         borderTopColor: '#e0e0e0',
         position: 'absolute',
         bottom: 0,
+    },
+    editableInput: {
+        backgroundColor: '#f0f0f0',
+        width: '100%',
+        padding: 10,
+        borderRadius: 25,
+        marginVertical: 5,
+        textAlign: 'center',
+        fontSize: 16,
+    },
+    editButton: {
+        backgroundColor: '#99ccff',
+        width: '100%',
+        padding: 12,
+        borderRadius: 25,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    editText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    saveButton: {
+        backgroundColor: '#66bb6a',
+        width: '100%',
+        padding: 12,
+        borderRadius: 25,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    saveText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 
