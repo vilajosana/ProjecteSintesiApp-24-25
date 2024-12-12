@@ -17,11 +17,11 @@ const Login = ({ navigation }) => {
 
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
-        Alert.alert('Successful Login', 'Welcome!!');
+        Alert.alert('Sessió Iniciada', 'Benvingut!');
         navigation.navigate('MenuPrincipal'); // Redirigeix a la pàgina principal després de fer login
       })
       .catch((error) => {
-        Alert.alert('Error', error.message);
+        Alert.alert('Error', 'Credencials incorrectes');
       });
   };
 

@@ -12,12 +12,17 @@ const Register = ({ navigation }) => {
 
   const handleRegister = () => {
     if (email === '' || password === '' || confirmPassword === '') {
-      Alert.alert('Error', 'Please fill all fields');
+      Alert.alert('Error', 'Omple tots els camps');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert('Error', 'Les contrassenyes no coincideixen');
+      return;
+    }
+
+    if (password.length < 6) { // Comprovem que la contrasenya tingui almenys 6 caràcters
+      Alert.alert('Error', 'La contrasenya ha de tenir almenys 6 caràcters');
       return;
     }
 
@@ -26,15 +31,15 @@ const Register = ({ navigation }) => {
     createUserWithEmailAndPassword(auth, email, password)
       .then(() => {
         // Usuari registrat correctament, inicia sessió automàticament
-        Alert.alert('Welcome!', 'Your account was created and logged in.');
+        Alert.alert('Welcome!', 'S\'ha creat la compte correctament.');
         navigation.navigate('MenuPrincipal'); // Redirigeix a la pàgina principal (Home)
       })
       .catch((error) => {
         if (error.code === 'auth/email-already-in-use') {
           // Si l'usuari ja existeix, mostra un missatge
-          Alert.alert('Existing user', 'This email is already registered...');
+          Alert.alert('Usuari existent', 'Aquest correu ja s\ha fet servir');
         } else {
-          Alert.alert('Error', error.message);
+          Alert.alert('Error', 'Correu invàlid');
         }
       });
   };
