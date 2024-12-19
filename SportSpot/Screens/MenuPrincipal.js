@@ -5,20 +5,18 @@ import FSection from '../components/FSection';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Filter from '../components/filter';
+import * as Animatable from 'react-native-animatable';
 
 export default function MenuPrincipal({ navigation }) {
     const [isMapVisible, setIsMapVisible] = useState(true);
     const [isFilterVisible, setFilterVisible] = useState(false);
-    const [selectedZones, setSelectedZones] = useState([]); // Estado para las zonas seleccionadas
+    const [selectedZones, setSelectedZones] = useState([]);
 
     const handlePress = (id) => {
-        console.log("Han clicat al botó " + id);
         if (id === 1) {
             navigation.navigate("MenuPrincipal");
         } else if (id === 2) {
             navigation.navigate("Preferits");
-        } else if (id === 3) {
-            navigation.navigate("AfegirNovaUbicacio");
         } else if (id === 4) {
             navigation.navigate("Usuari");
         }
@@ -28,37 +26,33 @@ export default function MenuPrincipal({ navigation }) {
         if (view === 'map') {
             setIsMapVisible(true);
         } else if (view === 'list') {
-            navigation.navigate('HomeLlista'); // Navegar a la pantalla HomeLlista
+            navigation.navigate('HomeLlista');
         }
     };
 
     const handleFilterPress = () => {
         setFilterVisible(!isFilterVisible);
-        console.log("Ícono de filtro presionado");
     };
 
     const handleIconPress = () => {
-        // Navegar a la pantalla Info.js quan es pressionen els tres punts
-        console.log("Ícono de los tres puntos presionado");
-        navigation.navigate("Info"); // Aquí canviem a la ruta Info
+        navigation.navigate("Info");
     };
 
     const { width, height } = Dimensions.get('window');
 
-    const handleFooterPress = () => {
-        console.log("Texto del footer presionado");
-    };
-
     return (
-        <View style={{ flex: 1, paddingTop: 30 }}>
+        <View style={{ flex: 1, paddingTop: 50 }}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleIconPress} style={styles.headerIcon}>
                     <Ionicons name="ellipsis-vertical" size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Menú Principal</Text>
+                <View style={styles.headerTitleContainer}>
+                    <Text style={styles.headerTitle}>Menú Principal</Text> 
+                </View>
             </View>
+
             <View style={styles.mapContainer}>
-                <View style={styles.buttonArea}>
+                <View style={[styles.buttonArea, { marginTop: -20 }]}>
                     <View style={styles.buttonRectangle}>
                         <TouchableOpacity
                             style={[styles.button, isMapVisible && styles.buttonSelected]}
@@ -78,43 +72,41 @@ export default function MenuPrincipal({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                {isMapVisible ? (
-                    <MapView
-                        style={{ width: width * 1, height: height * 0.5 }}
-                        initialRegion={{
-                            latitude: 41.722730,
-                            longitude: 1.812957,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421,
-                        }}
-                    >
-                        <Marker
-                            coordinate={{ latitude: 41.721010, longitude: 1.815320 }}
-                            title={"Estadi Municipal El Congost- CE Manresa"}
-                            description={"Descripción de la nueva ubicación"}
+                {isMapVisible && (
+                    <View style={styles.roundedMapContainer}>
+                        <MapView
+                            style={styles.map}
+                            initialRegion={{
+                                latitude: 41.722730,
+                                longitude: 1.812957,
+                                latitudeDelta: 0.0922,
+                                longitudeDelta: 0.0421,
+                            }}
                         >
-                            <Callout>
-                                <View style={styles.calloutContainer}>
-                                    <Ionicons name="football" size={30} color="black" style={styles.footballIcon} />
-                                    <Image
-                                        source={{ uri: 'https://example.com/icon.png' }}
-                                        style={styles.calloutIcon}
-                                    />
-                                    <Text style={styles.calloutTitle}>Estadi Municipal el Nou Congost</Text>
-                                    <Text style={styles.calloutDescription}>Camp de Futbol</Text>
-                                    <View style={styles.ratingContainer}>
-                                        <Text>⭐⭐⭐⭐⭐</Text>
+                            <Marker
+                                coordinate={{ latitude: 41.721010, longitude: 1.815320 }}
+                                title={"Estadi Municipal El Congost- CE Manresa"}
+                                description={"Descripción de la nueva ubicación"}
+                            >
+                                <Callout>
+                                    <View style={styles.calloutContainer}>
+                                        <Ionicons name="football" size={30} color="black" style={styles.footballIcon} />
+                                        <Image
+                                            source={{ uri: 'https://example.com/icon.png' }}
+                                            style={styles.calloutIcon}
+                                        />
+                                        <Text style={styles.calloutTitle}>Estadi Municipal el Nou Congost</Text> 
+                                        <Text style={styles.calloutDescription}>Camp de Futbol</Text> 
+                                        <View style={styles.ratingContainer}>
+                                            <Text>⭐⭐⭐⭐⭐</Text> 
+                                        </View>
+                                        <TouchableOpacity style={styles.heartButton}>
+                                            <Ionicons name="heart" size={24} color="red" />
+                                        </TouchableOpacity>
                                     </View>
-                                    <TouchableOpacity style={styles.heartButton}>
-                                        <Ionicons name="heart" size={24} color="red" />
-                                    </TouchableOpacity>
-                                </View>
-                            </Callout>
-                        </Marker>
-                    </MapView>
-                ) : (
-                    <View style={styles.listContainer}>
-                        <Text style={styles.listItem}>Llista de Elementos</Text>
+                                </Callout>
+                            </Marker>
+                        </MapView>
                     </View>
                 )}
 
@@ -125,14 +117,8 @@ export default function MenuPrincipal({ navigation }) {
                         onClose={() => setFilterVisible(false)} 
                     />
                 )}
-
             </View>
-            <TouchableOpacity style={styles.footer} onPress={handleFooterPress}>
-                <Text style={styles.footerText}>Afegir Ubicació</Text>
-                <View style={styles.circleIcon}>
-                    <Ionicons name="add" size={24} color="black" />
-                </View>
-            </TouchableOpacity>
+
             <View style={styles.space} />
             <View style={styles.section}>
                 <FSection currentSection={1} onPress={handlePress} navigation={navigation} />
@@ -143,24 +129,42 @@ export default function MenuPrincipal({ navigation }) {
 
 const styles = StyleSheet.create({
     header: {
-        backgroundColor: 'grey',
-        padding: 10,
+        backgroundColor: 'linear-gradient(to right, #ff7e5f, #feb47b)',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-start',
+        justifyContent: 'center',  // Asegura que el títol estigui centrat
+        padding: 10,
+        borderBottomColor: '#ddd',
+        shadowColor: '#000',
+        shadowRadius: 4,
+        backgroundColor: 'white',
+    },
+    headerTitleContainer: {
+        flex: 1,  // Asegura que ocupa tot l'espai disponible
+        justifyContent: 'center',
+        alignItems: 'center', // Centra el títol
+        backgroundColor: 'white',
+        borderRadius: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 20,
+        marginHorizontal: 20, 
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     headerTitle: {
         fontSize: 24,
+        fontWeight: 'semi-bold',
         color: 'black',
-        textAlign: 'center',
-        flex: 1,
+        textAlign: 'center', // Centrat del text
+        fontFamily: 'Poppins'
     },
     headerIcon: {
         padding: 10,
     },
     mapContainer: {
         flex: 7,
-        backgroundColor: 'grey',
         padding: 10,
         marginTop: 10,
         alignItems: 'center',
@@ -168,8 +172,9 @@ const styles = StyleSheet.create({
     buttonArea: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start', // Canviat per a col·locar els botons a l'esquerra
         marginBottom: 10,
+        marginTop: -20,
     },
     buttonRectangle: {
         flexDirection: 'row',
@@ -179,13 +184,17 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         alignItems: 'center',
     },
-    button: {   
+    button: {
         backgroundColor: 'transparent',
         borderRadius: 10,
-        padding: 10,
+        padding: 12,
         width: '45%',
         alignItems: 'center',
-    },
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+      },
     buttonSelected: {
         backgroundColor: '#FF6347',
     },
@@ -201,39 +210,21 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 12,
     },
-    listContainer: {
-        backgroundColor: 'lightgrey',
-        padding: 10,
-        borderRadius: 10,
-        marginBottom: 10,
-        width: '70%',
-        alignItems: 'center',
+    roundedMapContainer: {
+        width: '95%',
+        height: Dimensions.get('window').height * 0.55,
+        borderRadius: 20,
+        overflow: 'hidden',
+        marginTop: 20,
     },
-    listItem: {
-        fontSize: 16,
-        color: 'black',
-    },
-    footer: {
-        backgroundColor: 'grey',
-        flexDirection: 'row',
-        padding: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    circleIcon: {
-        borderWidth: 4,
-        borderColor: 'black',
-        borderRadius: 50,
-        padding: 6,
-        marginLeft: 10,
-    },
-    footerText: {
-        fontSize: 16,
-        color: 'black',
-    },
-    section: {
-        flex: 1,
-    },
+    map: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        overflow: 'hidden',
+      },
     calloutContainer: {
         alignItems: 'center',
         width: 150,
@@ -265,6 +256,9 @@ const styles = StyleSheet.create({
         transform: [{ translateX: -15 }],
     },
     space: {
-        height: 20, // Afegim espai entre seccions
-    }
+        height: 20,
+    },
+    section: {
+        flex: 1,
+    },
 });

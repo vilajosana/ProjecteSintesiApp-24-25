@@ -1,9 +1,54 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { db } from '../utils/firebaseConfig';  // Importa la configuració de Firebase
+import { collection, getDocs, query, where } from 'firebase/firestore';  // Importa els mètodes necessaris de Firestore
 import FSection from '../components/FSection';
 import { Ionicons } from '@expo/vector-icons'; // Asegúrate de tener instalado @expo/vector-icons
 
-const Preferits = ({ navigation }) => {
+const Preferits = ({ navigation, userId }) => {
+  const [favorits, setFavorits] = useState([]);  // Afegim un estat per emmagatzemar els favorits
+  const [loading, setLoading] = useState(true);  // Afegim estat per gestionar la càrrega de dades
+
+  // Carregar favorits des de Firestore
+  const carregarFavorits = async () => {
+    try {
+      // Consulta per obtenir l'usuari amb un userId determinat
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('userId', '==', userId)); // Assegura't que 'userId' existeixi
+  
+      const querySnapshot = await getDocs(q);
+      console.log('Dades obtingudes:', querySnapshot); // Veure si es retorna alguna dada
+  
+      if (querySnapshot.empty) {
+        console.log('No s\'han trobat favorits per aquest usuari.');
+        setLoading(false); // Finalitza el loading
+        return; // Sortim si no hi ha dades
+      }
+  
+      const favoritsArray = [];
+      querySnapshot.forEach((doc) => {
+        // Afegeix cada document a la llista de favorits
+        console.log("Document dels favorits:", doc.data());
+        favoritsArray.push(doc.data());
+      });
+  
+      // Actualitza l'estat amb els favorits obtinguts
+      setFavorits(favoritsArray);
+      setLoading(false); // Finalitza el loading
+  
+    } catch (error) {
+      console.error('Error carregant els favorits: ', error);
+      setLoading(false); // Finalitza el loading en cas d'error
+    }
+  };
+
+  // Utilitzem useEffect per carregar els favorits en carregar el component
+  useEffect(() => {
+    if (userId) {
+      carregarFavorits();  // Cridem la funció per carregar els favorits
+    }
+  }, [userId]);
+
   const handlePress = (id) => {
     console.log("Han clicat al botó " + id);
     if (id === 1) {
@@ -28,6 +73,22 @@ const Preferits = ({ navigation }) => {
           <Text style={styles.labelText}>Preferits</Text>
         </TouchableOpacity>
       </View>
+      
+      {/* Mostrar loading mentre es carrega */}
+      {loading ? (
+        <Text>Carregant favorits...</Text>
+      ) : (
+        <FlatList
+          data={favorits}  // Carreguem els favorits a la FlatList
+          keyExtractor={(item, index) => index.toString()}  // Utilitzem un index com a key
+          renderItem={({ item }) => (
+            <View style={styles.favItem}>
+              <Text>{item.name}</Text>  {/* Mostrar un atribut de l'objecte favorit */}
+            </View>
+          )}
+        />
+      )}
+
       <View style={styles.footer}>
         <FSection currentSection={2} onPress={handlePress} navigation={navigation} />
       </View>
@@ -43,7 +104,7 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 50,
     paddingBottom: 20,
-    backgroundColor: '#d3d3d3', // Color gris para la cabecera
+    backgroundColor: '#d3d3d3',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -54,9 +115,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
-    marginLeft: 20, // Espacio entre el icono y el texto
-    flex: 1, // Esto asegura que el texto esté centrado en el espacio restante
-    textAlign: 'center', // Centra el texto en el espacio disponible
+    marginLeft: 20,
+    flex: 1,
+    textAlign: 'center',
   },
   iconButton: {
     padding: 10,
@@ -90,6 +151,11 @@ const styles = StyleSheet.create({
     borderTopColor: '#e0e0e0',
     position: 'absolute',
     bottom: 0,
+  },
+  favItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
 });
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import { getAuth, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../utils/firebaseConfig"; // Assegura't de tenir configurat Firebase correctament
+import { db } from "../utils/firebaseConfig"; 
 import FSection from '../components/FSection';
 import { MaterialIcons, FontAwesome, Entypo } from '@expo/vector-icons';
 
@@ -40,24 +40,28 @@ const Usuari = ({ navigation }) => {
         }
     };
 
-    const handleMenu = () => {
-        console.log("Menu clicked");
-    };
-
-    const handleSave = () => {
-        console.log("Guardar dades:", userData);
-        setIsEditing(false);
-        // Aquí podries afegir el codi per actualitzar la informació a Firebase.
+    const handlePress = (id) => {
+        console.log("Han clicat al botó " + id);
+        if (id === 1) {
+            navigation.navigate("MenuPrincipal");
+        } else if (id === 2) {
+            navigation.navigate("Preferits");
+        } else if (id === 3) {
+            navigation.navigate("AfegirNovaUbicacio");
+        } else if (id === 4) {
+            navigation.navigate("Usuari");
+        }
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
+                {/* Botó "tres puntets" per obrir el menú - baixat una mica */}
                 <TouchableOpacity 
                     style={styles.menuButton}
-                    onPress={() => navigation.navigate('MenuPrincipal')} // Navegar a HomePage
+                    onPress={() => navigation.navigate('Info')}  // Canviat per navegar a "Allinfo"
                 >
-                    <Entypo name="home" size={24} color="black" />
+                    <Entypo name="dots-three-vertical" size={24} color="black" />
                 </TouchableOpacity>
                 <Image 
                     source={require('../assets/user_profile.png')} 
@@ -121,7 +125,7 @@ const Usuari = ({ navigation }) => {
                     {isEditing ? (
                         <TouchableOpacity 
                             style={styles.saveButton} 
-                            onPress={handleSave}
+                            onPress={() => setIsEditing(false)}
                         >
                             <Text style={styles.saveText}>Guardar</Text>
                         </TouchableOpacity>
@@ -143,7 +147,7 @@ const Usuari = ({ navigation }) => {
                 </View>
             </View>
             <View style={styles.footer}>
-                <FSection currentSection={4} onPress={(id) => console.log(`Secció ${id}`)} navigation={navigation} />
+                <FSection currentSection={4} onPress={handlePress} navigation={navigation} />
             </View>
         </View>
     );
@@ -170,7 +174,7 @@ const styles = StyleSheet.create({
     menuButton: {
         padding: 10,
         zIndex: 1,
-        marginTop: 10,
+        marginTop: 30,  // Augmentat per baixar-lo més
         marginLeft: 10,
     },
     userInfo: {
