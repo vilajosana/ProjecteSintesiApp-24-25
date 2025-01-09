@@ -1,78 +1,157 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, TextInput } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FSection from '../components/FSection';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
+import * as Location from 'expo-location';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, doc, setDoc, collection, addDoc, updateDoc, getDoc } from 'firebase/firestore'; // Importar Firebase
+import { useLocationContext } from '../Screens/LocationContext'; // Importar el context
 
 export default function AfegirNovaUbicacio({ navigation }) {
   const [cameraPermission, setCameraPermission] = useState(false);
-  const [isCameraVisible, setIsCameraVisible] = useState(false);
-  const [photo, setPhoto] = useState(null);  // Estado para almacenar la foto capturada
+  const [photo, setPhoto] = useState(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [rating, setRating] = useState(0);
+  const [location, setLocation] = useState(null);
+  const { addLocation } = useLocationContext();  // Accedir al context per afegir ubicacions
+
+  const auth = getAuth();
+  const db = getFirestore();
 
   useEffect(() => {
-    // Solicitar permisos de cámara cuando el componente se monta
+    // Sol·licitar permisos de càmera
     const requestCameraPermission = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       if (status === 'granted') {
         setCameraPermission(true);
       } else {
-        Alert.alert("Permiso de cámara denegado", "No puedes acceder a la cámara.");
+        Alert.alert("Permís de càmera denegat", "No pots accedir a la càmera.");
+      }
+    };
+
+    // Sol·licitar permisos de localització
+    const requestLocationPermission = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permís de localització denegat", "No pots accedir a la teva ubicació.");
+      } else {
+        // Obtenir la ubicació actual
+        const userLocation = await Location.getCurrentPositionAsync({});
+        setLocation(userLocation.coords);
       }
     };
 
     requestCameraPermission();
+    requestLocationPermission();
   }, []);
-
-  const handleIconPress = () => {
-    console.log('Ícono de los tres puntos presionado');
-  };
-
-  const handlePress = (id) => {
-    console.log("Han clicat al botó " + id);
-    if (id === 1) {
-      navigation.navigate("MenuPrincipal");
-    } else if (id === 2) {
-      navigation.navigate("Preferits");
-    } else if (id === 4) {
-      navigation.navigate("Usuari");
-    }
-  };
 
   const handleCameraButtonPress = async () => {
     if (cameraPermission) {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaType.Images,
         allowsEditing: true,
         quality: 1,
       });
 
       if (!result.canceled) {
-        setPhoto(result.assets[0].uri);  // Guarda la URI de la foto capturada
+        setPhoto(result.assets[0].uri);
       }
     } else {
-      Alert.alert("Permiso de cámara", "Por favor, habilita los permisos para usar la cámara.");
+      Alert.alert("Permís de càmera", "Per favor, habilita els permisos per a usar la càmera.");
+    }
+  };
+
+  const handleStarPress = (index) => {
+    setRating(index + 1);
+  };
+
+  const renderStars = () => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <TouchableOpacity
+        key={index}
+        onPress={() => handleStarPress(index)}
+        style={styles.starButton}
+      >
+        <Ionicons
+          name="star-outline"
+          size={24}
+          color={index < rating ? 'yellow' : 'gray'}
+        />
+      </TouchableOpacity>
+    ));
+  };
+
+  const handleAddLocation = async () => {
+    if (name && description && location) {
+      try {
+        const newLocation = { name, description, rating, location, photo };
+
+        // Afegir la nova ubicació a la col·lecció Locations
+        const locationRef = await addDoc(collection(db, 'Locations'), newLocation);
+
+        // Afegir la ubicació a la llista de l'usuari
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const userRef = doc(db, 'Users', currentUser.uid);
+          const userSnapshot = await getDoc(userRef);
+
+          if (userSnapshot.exists()) {
+            const userData = userSnapshot.data();
+            const updatedLocations = [...(userData.locations || []), locationRef.id];
+
+            // Actualitzar la llista d'ubicacions de l'usuari
+            await updateDoc(userRef, { locations: updatedLocations });
+          }
+        }
+
+        // Un cop afegida la ubicació, mostra un missatge d'èxit i redirigeix
+        Alert.alert('Ubicació afegida!', 'La ubicació s\'ha afegit correctament.');
+        navigation.navigate("MenuPrincipal");
+
+      } catch (error) {
+        console.error('Error afegint la ubicació:', error);
+        Alert.alert('Error', 'No s\'ha pogut afegir la ubicació');
+      }
+    } else {
+      Alert.alert("Error", "Si us plau, omple tots els camps.");
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleIconPress} style={styles.headerIcon}>
-          <Ionicons name="ellipsis-vertical" size={24} color="black" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Afegir Ubicació</Text>
-      </View>
-      <View style={styles.search}>
-        {/* Aquí se podría añadir un componente de búsqueda */}
+        <Text style={styles.headerTitle}>Afegir Nova Ubicació</Text>
       </View>
 
-      {/* Botón para activar la cámara */}
-      <TouchableOpacity style={styles.camera} onPress={handleCameraButtonPress}>
-        <Text style={styles.cameraText}>Càmera</Text>
+      <View style={styles.formContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Nom de la ubicació"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Descripció"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+        />
+        <View style={styles.starsContainer}>
+          <Text style={styles.starsLabel}>Valoració:</Text>
+          {renderStars()}
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.cameraButton} onPress={handleCameraButtonPress}>
+        <Text style={styles.cameraButtonText}>Obrir Càmera</Text>
       </TouchableOpacity>
 
-      {/* Mostrar la foto capturada si existe */}
       {photo && (
         <View style={styles.imageContainer}>
           <Text>Foto Capturada:</Text>
@@ -80,66 +159,28 @@ export default function AfegirNovaUbicacio({ navigation }) {
         </View>
       )}
 
-      <FSection currentSection={3} onPress={handlePress} navigation={navigation} />
+      {/* Botó per afegir la ubicació */}
+      <TouchableOpacity style={styles.addLocationButton} onPress={handleAddLocation}>
+        <Text style={styles.addLocationButtonText}>Afegir Ubicació</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: '#808080',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  headerIcon: {
-    marginRight: 12,
-    padding: 6,
-    borderRadius: 20,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  search: {
-    height: 40,
-    backgroundColor: '#d3d3d3',
-    marginHorizontal: 16,
-    marginVertical: 12,
-    borderRadius: 20,
-  },
-  camera: {
-    height: 450,
-    width: '80%',
-    backgroundColor: '#d3d3d3',
-    marginVertical: 16,
-    alignSelf: 'center',
-    padding: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cameraText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  imageContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  image: {
-    width: 200,
-    height: 200,
-    marginTop: 20,
-  },
+  container: { flex: 1, backgroundColor: '#f7f7f7' },
+  header: { flexDirection: 'row', padding: 20, backgroundColor: '#ff6347', alignItems: 'center' },
+  headerIcon: { marginRight: 12 },
+  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
+  formContainer: { padding: 20 },
+  input: { height: 45, borderColor: '#ccc', borderWidth: 1, borderRadius: 10, marginBottom: 15, paddingHorizontal: 10, backgroundColor: '#fff' },
+  starsContainer: { flexDirection: 'row', marginBottom: 20 },
+  starsLabel: { fontSize: 18, marginRight: 10 },
+  starButton: { marginRight: 5 },
+  cameraButton: { backgroundColor: '#ff6347', padding: 15, borderRadius: 10, alignItems: 'center' },
+  cameraButtonText: { color: '#fff' },
+  imageContainer: { alignItems: 'center', marginTop: 20 },
+  image: { width: 250, height: 250 },
+  addLocationButton: { backgroundColor: '#4CAF50', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
+  addLocationButtonText: { fontSize: 18, color: '#fff' }
 });

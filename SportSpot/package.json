@@ -35,7 +35,8 @@
     "react-native-animatable": "^1.4.0",
     "react-native-maps": "1.18.0",
     "react-native-pager-view": "6.5.1",
-    "react-native-toast-message": "^2.2.1"
+    "react-native-toast-message": "^2.2.1",
+    "expo-location": "~18.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

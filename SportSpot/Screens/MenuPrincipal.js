@@ -17,6 +17,8 @@ export default function MenuPrincipal({ navigation }) {
             navigation.navigate("MenuPrincipal");
         } else if (id === 2) {
             navigation.navigate("Preferits");
+        } else if (id === 3) {
+            navigation.navigate("AfegirNovaUbicacio");
         } else if (id === 4) {
             navigation.navigate("Usuari");
         }
