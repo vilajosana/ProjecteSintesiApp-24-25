@@ -7,7 +7,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Filter from '../components/filter';
 import * as Animatable from 'react-native-animatable';
 import { firebase } from '../utils/firebaseConfig'; // Configuració de Firebase
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 
 export default function MenuPrincipal({ navigation }) {
     const [isMapVisible, setIsMapVisible] = useState(true);
@@ -16,16 +16,12 @@ export default function MenuPrincipal({ navigation }) {
     const [locations, setLocations] = useState([]); // Estat per emmagatzemar les ubicacions
 
     useEffect(() => {
-        loadLocations(); // Carrega les ubicacions quan el component es renderitza
-    }, []);
+        const db = getFirestore();
+        const locationsCollection = collection(db, 'Locations'); // Nom de la col·lecció a Firebase
 
-    // Funció per carregar les ubicacions des de Firebase
-    const loadLocations = async () => {
-        try {
-            const db = getFirestore();
-            const locationsCollection = collection(db, 'Locations'); // Nom de la col·lecció a Firebase
-            const locationSnapshot = await getDocs(locationsCollection);
-            const locationList = locationSnapshot.docs
+        // Listener per canvis en temps real a Firestore
+        const unsubscribe = onSnapshot(locationsCollection, (snapshot) => {
+            const locationList = snapshot.docs
                 .map((doc) => {
                     const data = doc.data();
                     const location = data.location; // Obté el camp `location`
@@ -43,11 +39,11 @@ export default function MenuPrincipal({ navigation }) {
                 })
                 .filter((loc) => loc !== null); // Elimina les ubicacions amb coordenades no vàlides
             setLocations(locationList); // Estableix l'estat amb les ubicacions vàlides
-        } catch (error) {
-            console.error('Error carregant ubicacions:', error);
-        }
-    };
-    
+        });
+
+        // Tornar a desconnectar el listener quan el component es destrueixi
+        return () => unsubscribe();
+    }, []);
 
     const handlePress = (id) => {
         if (id === 1) {

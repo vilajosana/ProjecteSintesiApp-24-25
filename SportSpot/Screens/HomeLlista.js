@@ -4,7 +4,7 @@ import { Ionicons } from 'react-native-vector-icons';
 import FSection from '../components/FSection';
 import Toast from 'react-native-toast-message'; // Importa Toast directament
 import { firebase } from '../utils/firebaseConfig'; // Importa la configuració de Firebase
-import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default function HomeLlista({ navigation }) {
@@ -94,6 +94,44 @@ export default function HomeLlista({ navigation }) {
             console.error('Error actualitzant la valoració:', error);
             Alert.alert('Error', 'No s\'ha pogut actualitzar la valoració');
         }
+    };
+
+    // Funció per eliminar una ubicació de Firebase
+    const deleteLocation = async (id) => {
+        const db = getFirestore();
+        const locationRef = doc(db, 'Locations', id);
+        try {
+            await deleteDoc(locationRef); // Eliminar el document de la ubicació
+            setLocations((prevLocations) => prevLocations.filter((location) => location.id !== id)); // Actualitzar la llista de ubicacions
+            Toast.show({
+                type: 'success',
+                position: 'bottom',
+                text1: 'Ubicació eliminada!',
+                visibilityTime: 1500,
+            });
+        } catch (error) {
+            console.error('Error eliminant la ubicació:', error);
+            Alert.alert('Error', 'No s\'ha pogut eliminar la ubicació');
+        }
+    };
+
+    // Funció per mostrar l'alerta de confirmació d'eliminació
+    const handleDeletePress = (id) => {
+        Alert.alert(
+            'Confirmar Eliminació',
+            'Estàs segur que vols eliminar aquesta ubicació?',
+            [
+                {
+                    text: 'Cancel·lar',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Eliminar',
+                    onPress: () => deleteLocation(id),
+                },
+            ],
+            { cancelable: false }
+        );
     };
 
     // Funció per actualitzar els preferits de l'usuari a Firestore
@@ -200,7 +238,7 @@ export default function HomeLlista({ navigation }) {
                             color={item.favorite ? 'red' : 'black'}
                         />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Allinfo')}>
+                    <TouchableOpacity onPress={() => handleDeletePress(item.id)}>
                         <Ionicons name="ellipsis-vertical" size={24} color="black" />
                     </TouchableOpacity>
                 </View>
