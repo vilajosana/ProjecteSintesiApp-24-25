@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'; // Afegit per inicialitzar Firestore
+import { getFirestore, collection, getDocs } from 'firebase/firestore';  // Afegim els mètodes de la nova API modular
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWOaj8E3LXjza0jPLzVT2kfWh6MSFfpCg",
@@ -19,4 +19,4 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { db, auth };
+export { db, auth, collection, getDocs };

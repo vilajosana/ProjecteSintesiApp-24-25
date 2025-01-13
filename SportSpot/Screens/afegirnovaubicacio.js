@@ -5,23 +5,22 @@ import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, setDoc, collection, addDoc, updateDoc, getDoc } from 'firebase/firestore'; // Importar Firebase
-import { useLocationContext } from '../Screens/LocationContext'; // Importar el context
+import { getFirestore, doc, setDoc, collection, addDoc, updateDoc, getDoc } from 'firebase/firestore'; 
+import { useLocationContext } from '../Screens/LocationContext';
 
 export default function AfegirNovaUbicacio({ navigation }) {
   const [cameraPermission, setCameraPermission] = useState(false);
-  const [photo, setPhoto] = useState(null);
+  const [photos, setPhotos] = useState([]); // Array per guardar múltiples fotos
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [rating, setRating] = useState(0);
   const [location, setLocation] = useState(null);
-  const { addLocation } = useLocationContext();  // Accedir al context per afegir ubicacions
+  const { addLocation } = useLocationContext();
 
   const auth = getAuth();
   const db = getFirestore();
 
   useEffect(() => {
-    // Sol·licitar permisos de càmera
     const requestCameraPermission = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       if (status === 'granted') {
@@ -31,13 +30,11 @@ export default function AfegirNovaUbicacio({ navigation }) {
       }
     };
 
-    // Sol·licitar permisos de localització
     const requestLocationPermission = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert("Permís de localització denegat", "No pots accedir a la teva ubicació.");
       } else {
-        // Obtenir la ubicació actual
         const userLocation = await Location.getCurrentPositionAsync({});
         setLocation(userLocation.coords);
       }
@@ -47,16 +44,39 @@ export default function AfegirNovaUbicacio({ navigation }) {
     requestLocationPermission();
   }, []);
 
+  const handlePress = (id) => {
+    console.log("Han clicat al botó " + id);
+    if (id === 1) {
+      navigation.navigate("MenuPrincipal");
+    } else if (id === 2) {
+      navigation.navigate("Preferits");
+    } else if (id === 4) {
+      navigation.navigate("Usuari");
+    }
+  };
+
+  const handlePhotoSelection = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setPhotos([...photos, result.assets[0].uri]); // Afegir la foto seleccionada a l'array
+    }
+  };
+
   const handleCameraButtonPress = async () => {
     if (cameraPermission) {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 1,
       });
 
       if (!result.canceled) {
-        setPhoto(result.assets[0].uri);
+        setPhotos([...photos, result.assets[0].uri]); // Afegir la foto capturada a l'array
       }
     } else {
       Alert.alert("Permís de càmera", "Per favor, habilita els permisos per a usar la càmera.");
@@ -83,10 +103,22 @@ export default function AfegirNovaUbicacio({ navigation }) {
     ));
   };
 
+  const handleRemovePhoto = (uri) => {
+    // Mostrar un alert per confirmar l'eliminació de la foto
+    Alert.alert(
+      "Confirmar eliminació",
+      "Estàs segur que vols eliminar aquesta foto?",
+      [
+        { text: "Cancel·lar", style: "cancel" },
+        { text: "Eliminar", onPress: () => setPhotos(photos.filter(photo => photo !== uri)) }
+      ]
+    );
+  };
+
   const handleAddLocation = async () => {
     if (name && description && location) {
       try {
-        const newLocation = { name, description, rating, location, photo };
+        const newLocation = { name, description, rating, location, photos };
 
         // Afegir la nova ubicació a la col·lecció Locations
         const locationRef = await addDoc(collection(db, 'Locations'), newLocation);
@@ -122,6 +154,9 @@ export default function AfegirNovaUbicacio({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={handlePress} style={styles.headerIcon}>
+          <Ionicons name="ellipsis-vertical" size={24} color="black" />
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
@@ -148,14 +183,31 @@ export default function AfegirNovaUbicacio({ navigation }) {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.cameraButton} onPress={handleCameraButtonPress}>
-        <Text style={styles.cameraButtonText}>Obrir Càmera</Text>
+      {/* Botó per seleccionar foto de càmera o galeria */}
+      <TouchableOpacity style={styles.cameraButton} onPress={() => {
+        Alert.alert(
+          "Selecciona una opció",
+          "Tria una opció per afegir una foto",
+          [
+            { text: "Càmera", onPress: handleCameraButtonPress },
+            { text: "Galeria", onPress: handlePhotoSelection },
+            { text: "Cancel·lar", style: "cancel" }
+          ]
+        );
+      }}>
+        <Text style={styles.cameraButtonText}>Afegir Foto</Text>
       </TouchableOpacity>
 
-      {photo && (
+      {/* Mostrar les fotos seleccionades */}
+      {photos.length > 0 && (
         <View style={styles.imageContainer}>
-          <Text>Foto Capturada:</Text>
-          <Image source={{ uri: photo }} style={styles.image} />
+          <View style={styles.photosContainer}>
+            {photos.map((photoUri, index) => (
+              <TouchableOpacity key={index} onPress={() => handleRemovePhoto(photoUri)}>
+                <Image source={{ uri: photoUri }} style={styles.image} />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       )}
 
@@ -163,24 +215,122 @@ export default function AfegirNovaUbicacio({ navigation }) {
       <TouchableOpacity style={styles.addLocationButton} onPress={handleAddLocation}>
         <Text style={styles.addLocationButtonText}>Afegir Ubicació</Text>
       </TouchableOpacity>
+
+      {/* Secció amb els 4 botons dins del recuadre */}
+      <View style={styles.footer}>
+        <View style={styles.footerButtonsContainer}>
+          <TouchableOpacity onPress={() => handlePress(1)} style={styles.footerButton}>
+            <Ionicons name="home" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handlePress(2)} style={styles.footerButton}>
+            <Ionicons name="heart-outline" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handlePress(3)} style={styles.footerButton}>
+            <Ionicons name="add-circle-outline" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handlePress(4)} style={styles.footerButton}>
+            <Ionicons name="person-circle-outline" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f7f7' },
-  header: { flexDirection: 'row', padding: 20, backgroundColor: '#ff6347', alignItems: 'center' },
-  headerIcon: { marginRight: 12 },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
-  formContainer: { padding: 20 },
-  input: { height: 45, borderColor: '#ccc', borderWidth: 1, borderRadius: 10, marginBottom: 15, paddingHorizontal: 10, backgroundColor: '#fff' },
-  starsContainer: { flexDirection: 'row', marginBottom: 20 },
-  starsLabel: { fontSize: 18, marginRight: 10 },
-  starButton: { marginRight: 5 },
-  cameraButton: { backgroundColor: '#ff6347', padding: 15, borderRadius: 10, alignItems: 'center' },
-  cameraButtonText: { color: '#fff' },
-  imageContainer: { alignItems: 'center', marginTop: 20 },
-  image: { width: 250, height: 250 },
-  addLocationButton: { backgroundColor: '#4CAF50', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
-  addLocationButtonText: { fontSize: 18, color: '#fff' }
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#808080',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  headerIcon: {
+    marginRight: 12,
+    padding: 6,
+    borderRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  formContainer: {
+    padding: 20,
+  },
+  input: {
+    height: 45,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  starsLabel: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  starButton: {
+    marginRight: 5,
+  },
+  cameraButton: {
+    backgroundColor: '#ff6347',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  cameraButtonText: {
+    color: '#fff',
+  },
+  addLocationButton: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  addLocationButtonText: {
+    fontSize: 18,
+    color: '#fff',
+  },
+  imageContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  image: {
+    width: 150,
+    height: 150,
+    margin: 5,
+  },
+  photosContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+  },
+  footer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: '#fff',
+  },
+  footerButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
+  footerButton: {
+    padding: 10,
+  },
 });

@@ -65,20 +65,17 @@ export default function Info({ navigation }) {
                 </View>
             </View>
 
-            {/* Barra de navegació inferior */}
+            {/* Footer */}
             <View style={styles.footer}>
-                <TouchableOpacity onPress={() => navigation.navigate("MenuPrincipal")}>
-                    <Ionicons name="home-outline" size={32} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate("Preferits")}>
-                    <Ionicons name="heart-outline" size={32} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate("AfegirNovaUbicacio")}>
-                    <Ionicons name="add-circle-outline" size={32} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate("Usuari")}>
-                    <Ionicons name="person-outline" size={32} color="black" />
-                </TouchableOpacity>
+                <Text style={styles.footerText}>© 2025 Company Name</Text>
+                <View style={styles.footerLinks}>
+                    <TouchableOpacity onPress={() => navigation.navigate("PrivacyPolicy")}>
+                        <Text style={styles.footerLink}>Política de Privacitat</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate("TermsOfService")}>
+                        <Text style={styles.footerLink}>Termes i Condicions</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -157,13 +154,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
+        flexDirection: 'column',
+        justifyContent: 'center',
         alignItems: 'center',
         padding: 20,  // Aumenta el padding para que el recuadro sea más grande
         borderColor: 'grey',
-    
-        // Estils afegits per al recuadre:
         backgroundColor: 'white', // Fons blanc
         borderRadius: 20, // Arrodonir cantonades
         marginHorizontal: 10, // Màrgin lateral
@@ -172,11 +167,24 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2, // Opacitat de l'ombra
         shadowRadius: 5, // Difusió de l'ombra
         elevation: 5, // Ombra per a Android
-        marginBottom: 0, // Elimina el marge inferior
         position: 'absolute', // Col·loca el footer de manera absoluta
-        bottom: 20, // Ajusta la distància des de la part inferior de la pantalla
+        bottom: 0, // Ajusta la distància des de la part inferior de la pantalla
         left: 0,
         right: 0,
-        height: 80,  // Aumenta la altura del recuadro para hacerlo más grande
+        height: 100,  // Aumenta la altura del recuadro para hacerlo más grande
+    },
+    footerText: {
+        fontSize: 14,
+        color: '#808080',
+        marginBottom: 10,
+    },
+    footerLinks: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    footerLink: {
+        fontSize: 14,
+        color: '#FF6347',
+        marginHorizontal: 15,
     },
 });

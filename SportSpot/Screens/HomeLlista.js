@@ -9,8 +9,8 @@ import { getAuth } from 'firebase/auth';
 
 export default function HomeLlista({ navigation }) {
     const [locations, setLocations] = useState([]);
-    const [currentSection, setCurrentSection] = useState(1); // Sección actual
-    const [user, setUser] = useState(null); // Emmagatzemar l'usuari actual
+    const [currentSection, setCurrentSection] = useState(1); // Secció actual
+    const [user, setUser] = useState(null); // Emmagatzema l'usuari actual
 
     const auth = getAuth();
 
@@ -20,16 +20,29 @@ export default function HomeLlista({ navigation }) {
             const db = getFirestore();
             const locationsCollection = collection(db, 'Locations');
             const locationSnapshot = await getDocs(locationsCollection);
-            const locationList = locationSnapshot.docs.map(doc => ({
-                id: doc.id,
-                title: doc.data().Nom,
-                description: doc.data().Geolocation,
-                rating: doc.data().rating || 0,
-                favorite: doc.data().favorite || false,
-            }));
+            const locationList = locationSnapshot.docs.map((doc) => {
+                const data = doc.data();
+                const location = data.location; // Camp `location` amb subcamps `latitude` i `longitude`
+
+                // Comprovar si `location` és vàlid
+                if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
+                    console.warn(`Ubicació sense coordenades vàlides: ${doc.id}`);
+                    return null;
+                }
+
+                return {
+                    id: doc.id,
+                    name: data.name || 'Sense nom',
+                    description: data.description || 'Sense descripció',
+                    rating: data.rating || 0,
+                    latitude: location.latitude, // Latitud
+                    longitude: location.longitude, // Longitud
+                    favorite: data.favorite || false,
+                };
+            }).filter((location) => location !== null); // Elimina ubicacions no vàlides
             setLocations(locationList);
         } catch (error) {
-            console.error('Error loading locations:', error);
+            console.error('Error carregant les ubicacions:', error);
             Alert.alert('Error', 'No s\'han pogut carregar les ubicacions');
         }
     };
@@ -46,14 +59,14 @@ export default function HomeLlista({ navigation }) {
 
                 // Actualitza la visibilitat dels favorits en les ubicacions
                 setLocations((prevLocations) =>
-                    prevLocations.map(item => ({
+                    prevLocations.map((item) => ({
                         ...item,
                         favorite: favoriteLocations.includes(item.id),
                     }))
                 );
             }
         } catch (error) {
-            console.error('Error loading user favorites:', error);
+            console.error('Error carregant els preferits de l\'usuari:', error);
         }
     };
 
@@ -78,7 +91,7 @@ export default function HomeLlista({ navigation }) {
         try {
             await updateDoc(locationRef, { rating: rating });
         } catch (error) {
-            console.error('Error updating rating:', error);
+            console.error('Error actualitzant la valoració:', error);
             Alert.alert('Error', 'No s\'ha pogut actualitzar la valoració');
         }
     };
@@ -97,7 +110,7 @@ export default function HomeLlista({ navigation }) {
 
                 if (userData.favorites && userData.favorites.includes(locationId)) {
                     // Si la ubicació ja és als preferits, la traiem
-                    updatedFavorites = userData.favorites.filter(id => id !== locationId);
+                    updatedFavorites = userData.favorites.filter((id) => id !== locationId);
                 } else {
                     // Si la ubicació no és als preferits, la afegim
                     updatedFavorites = [...(userData.favorites || []), locationId];
@@ -107,8 +120,8 @@ export default function HomeLlista({ navigation }) {
                 await updateDoc(userRef, { favorites: updatedFavorites });
 
                 // Actualitzar la visibilitat del cor (favorit) a la llista de locations
-                setLocations(prevLocations =>
-                    prevLocations.map(item =>
+                setLocations((prevLocations) =>
+                    prevLocations.map((item) =>
                         item.id === locationId ? { ...item, favorite: !item.favorite } : item
                     )
                 );
@@ -121,7 +134,7 @@ export default function HomeLlista({ navigation }) {
                 });
             }
         } catch (error) {
-            console.error('Error updating favorites:', error);
+            console.error('Error actualitzant els preferits:', error);
             Alert.alert('Error', 'No s\'ha pogut actualitzar els preferits');
         }
     };
@@ -170,8 +183,11 @@ export default function HomeLlista({ navigation }) {
             <Ionicons name="location-outline" size={24} color="black" style={styles.mapPinIcon} />
             <View style={styles.itemContent}>
                 <View style={styles.itemTextContainer}>
-                    <Text style={styles.itemTitle}>{item.title}</Text>
-                    <Text style={styles.itemDescription}>{item.description}</Text>
+                    <Text style={styles.itemTitle}>{item.name}</Text> {/* Mostrem el name */}
+                    <Text style={styles.itemDescription}>{item.description}</Text> {/* Mostrem la description */}
+                    <Text style={styles.itemDescription}>
+                        Lat: {item.latitude}, Long: {item.longitude} {/* Mostrem la latitud i longitud */}
+                    </Text>
                 </View>
                 <View style={styles.itemInfo}>
                     <View style={styles.starsContainer}>
@@ -191,6 +207,7 @@ export default function HomeLlista({ navigation }) {
             </View>
         </View>
     );
+    
 
     return (
         <View style={{ flex: 1, marginTop: 50 }}>
@@ -225,19 +242,6 @@ export default function HomeLlista({ navigation }) {
             <View style={styles.footerContainer}>
                 <FSection currentSection={currentSection} onPress={handleSectionChange} navigation={navigation} />
             </View>
-
-            <View style={styles.footerButtons}>
-                <TouchableOpacity onPress={() => navigation.navigate('AfegirNovaUbicacio')}>
-                    <Ionicons name="add" size={40} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Preferits')}>
-                    <Ionicons name="heart" size={40} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Usuari')}>
-                    <Ionicons name="person" size={40} color="black" />
-                </TouchableOpacity>
-            </View>
-
             <Toast />
         </View>
     );
@@ -245,7 +249,7 @@ export default function HomeLlista({ navigation }) {
 
 const styles = StyleSheet.create({
     headerContainer: {
-        backgroundColor: 'grey',
+        backgroundColor: 'white',
         borderRadius: 10,
         margin: 10,
         padding: 10,
@@ -267,6 +271,7 @@ const styles = StyleSheet.create({
     buttonArea: {
         flexDirection: 'row',
         justifyContent: 'center',
+
     },
     button: {
         backgroundColor: 'transparent',

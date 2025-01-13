@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import { getAuth, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore"; // Añadimos `setDoc` para guardar datos
 import { db } from "../utils/firebaseConfig"; 
 import FSection from '../components/FSection';
 import { MaterialIcons, FontAwesome, Entypo } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ const Usuari = ({ navigation }) => {
     const [isEditing, setIsEditing] = useState(false);
     const auth = getAuth();
 
+    // Cargar datos del usuario desde Firestore
     useEffect(() => {
         const fetchUserData = async () => {
             const user = auth.currentUser;
@@ -29,6 +30,23 @@ const Usuari = ({ navigation }) => {
 
         fetchUserData();
     }, []);
+
+    // Función para guardar datos editados en Firestore
+    const handleSave = async () => {
+        const user = auth.currentUser;
+
+        if (user) {
+            const userDocRef = doc(db, "Users", user.uid);
+
+            try {
+                await setDoc(userDocRef, userData, { merge: true }); // Guarda los cambios
+                console.log("Dades desades correctament.");
+                setIsEditing(false);
+            } catch (error) {
+                console.error("Error desant les dades:", error);
+            }
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -56,10 +74,9 @@ const Usuari = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                {/* Botó "tres puntets" per obrir el menú - baixat una mica */}
                 <TouchableOpacity 
                     style={styles.menuButton}
-                    onPress={() => navigation.navigate('Info')}  // Canviat per navegar a "Allinfo"
+                    onPress={() => navigation.navigate('Info')}
                 >
                     <Entypo name="dots-three-vertical" size={24} color="black" />
                 </TouchableOpacity>
@@ -125,7 +142,7 @@ const Usuari = ({ navigation }) => {
                     {isEditing ? (
                         <TouchableOpacity 
                             style={styles.saveButton} 
-                            onPress={() => setIsEditing(false)}
+                            onPress={handleSave} // Llama a la función para guardar en Firestore
                         >
                             <Text style={styles.saveText}>Guardar</Text>
                         </TouchableOpacity>
@@ -261,13 +278,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     footer: {
-        width: '100%',
-        backgroundColor: '#ffffff',
-        paddingVertical: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#e0e0e0',
         position: 'absolute',
         bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 10,
+        backgroundColor: 'lightgrey',
+        borderTopWidth: 1,
+        borderTopColor: 'gray',
     },
     editableInput: {
         backgroundColor: '#f0f0f0',

@@ -61,9 +61,7 @@ export default function Info({ navigation }) {
             </View>
 
             {/* Secció de navegació a la part inferior amb els mateixos botons */}
-            <View style={styles.section}>
-                <FSection currentSection={1} onPress={handlePress} navigation={navigation} />
-            </View>
+            
         </View>
     );
 }
@@ -78,7 +76,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'grey',
+        backgroundColor: 'white',
         paddingVertical: 10,
         marginTop: 50,  // Afegim un margin superior per separar de la part superior
         width: '100%',  // Amplada completa

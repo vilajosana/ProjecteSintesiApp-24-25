@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import FSection from '../components/FSection';
@@ -6,11 +6,43 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Filter from '../components/filter';
 import * as Animatable from 'react-native-animatable';
+import { firebase } from '../utils/firebaseConfig'; // Configuració de Firebase
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
 export default function MenuPrincipal({ navigation }) {
     const [isMapVisible, setIsMapVisible] = useState(true);
     const [isFilterVisible, setFilterVisible] = useState(false);
     const [selectedZones, setSelectedZones] = useState([]);
+    const [locations, setLocations] = useState([]); // Estat per emmagatzemar les ubicacions
+
+    useEffect(() => {
+        loadLocations(); // Carrega les ubicacions quan el component es renderitza
+    }, []);
+
+    // Funció per carregar les ubicacions des de Firebase
+    const loadLocations = async () => {
+        try {
+            const db = getFirestore();
+            const locationsCollection = collection(db, 'Locations'); // Nom de la col·lecció
+            const locationSnapshot = await getDocs(locationsCollection);
+            const locationList = locationSnapshot.docs.map(doc => {
+                const data = doc.data();
+                const location = data.location || {}; // Camp `location` dins de Firebase
+
+                return {
+                    id: doc.id,
+                    title: data.Nom, // Nom de la ubicació
+                    description: data.Geolocation, // Descripció
+                    latitude: location.latitude || 0, // Latitud dins de `location`
+                    longitude: location.longitude || 0, // Longitud dins de `location`
+                    rating: data.rating || 0, // Valoració
+                };
+            });
+            setLocations(locationList);
+        } catch (error) {
+            console.error('Error loading locations:', error);
+        }
+    };
 
     const handlePress = (id) => {
         if (id === 1) {
@@ -49,7 +81,7 @@ export default function MenuPrincipal({ navigation }) {
                     <Ionicons name="ellipsis-vertical" size={24} color="black" />
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Menú Principal</Text> 
+                    <Text style={styles.headerTitle}>Menú Principal</Text>
                 </View>
             </View>
 
@@ -85,29 +117,28 @@ export default function MenuPrincipal({ navigation }) {
                                 longitudeDelta: 0.0421,
                             }}
                         >
-                            <Marker
-                                coordinate={{ latitude: 41.721010, longitude: 1.815320 }}
-                                title={"Estadi Municipal El Congost- CE Manresa"}
-                                description={"Descripción de la nueva ubicación"}
-                            >
-                                <Callout>
-                                    <View style={styles.calloutContainer}>
-                                        <Ionicons name="football" size={30} color="black" style={styles.footballIcon} />
-                                        <Image
-                                            source={{ uri: 'https://example.com/icon.png' }}
-                                            style={styles.calloutIcon}
-                                        />
-                                        <Text style={styles.calloutTitle}>Estadi Municipal el Nou Congost</Text> 
-                                        <Text style={styles.calloutDescription}>Camp de Futbol</Text> 
-                                        <View style={styles.ratingContainer}>
-                                            <Text>⭐⭐⭐⭐⭐</Text> 
+                            {locations.map((location) => (
+                                <Marker
+                                    key={location.id}
+                                    coordinate={{
+                                        latitude: location.latitude,
+                                        longitude: location.longitude,
+                                    }}
+                                    title={location.title}
+                                    description={location.description}
+                                >
+                                    <Callout>
+                                        <View style={styles.calloutContainer}>
+                                            <Ionicons name="location-outline" size={30} color="black" />
+                                            <Text style={styles.calloutTitle}>{location.title}</Text>
+                                            <Text style={styles.calloutDescription}>{location.description}</Text>
+                                            <View style={styles.ratingContainer}>
+                                                <Text>⭐ {location.rating}</Text>
+                                            </View>
                                         </View>
-                                        <TouchableOpacity style={styles.heartButton}>
-                                            <Ionicons name="heart" size={24} color="red" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </Callout>
-                            </Marker>
+                                    </Callout>
+                                </Marker>
+                            ))}
                         </MapView>
                     </View>
                 )}
@@ -134,7 +165,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'linear-gradient(to right, #ff7e5f, #feb47b)',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',  // Asegura que el títol estigui centrat
+        justifyContent: 'center',
         padding: 10,
         borderBottomColor: '#ddd',
         shadowColor: '#000',
@@ -142,14 +173,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
     },
     headerTitleContainer: {
-        flex: 1,  // Asegura que ocupa tot l'espai disponible
+        flex: 1,
         justifyContent: 'center',
-        alignItems: 'center', // Centra el títol
+        alignItems: 'center',
         backgroundColor: 'white',
         borderRadius: 10,
         paddingVertical: 8,
         paddingHorizontal: 20,
-        marginHorizontal: 20, 
+        marginHorizontal: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -159,8 +190,7 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'semi-bold',
         color: 'black',
-        textAlign: 'center', // Centrat del text
-        fontFamily: 'Poppins'
+        textAlign: 'center',
     },
     headerIcon: {
         padding: 10,
@@ -174,7 +204,7 @@ const styles = StyleSheet.create({
     buttonArea: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-start', // Canviat per a col·locar els botons a l'esquerra
+        justifyContent: 'flex-start',
         marginBottom: 10,
         marginTop: -20,
     },
@@ -196,7 +226,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 5 },
         shadowOpacity: 0.1,
         shadowRadius: 5,
-      },
+    },
     buttonSelected: {
         backgroundColor: '#FF6347',
     },
@@ -222,19 +252,10 @@ const styles = StyleSheet.create({
     map: {
         width: '100%',
         height: '100%',
-        borderRadius: 15,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        overflow: 'hidden',
-      },
+    },
     calloutContainer: {
         alignItems: 'center',
         width: 150,
-    },
-    calloutIcon: {
-        width: 50,
-        height: 50,
-        marginBottom: 5,
     },
     calloutTitle: {
         fontWeight: 'bold',
@@ -247,15 +268,6 @@ const styles = StyleSheet.create({
     },
     ratingContainer: {
         marginBottom: 5,
-    },
-    heartButton: {
-        marginTop: 5,
-    },
-    footballIcon: {
-        position: 'absolute',
-        top: 30,
-        left: '50%',
-        transform: [{ translateX: -15 }],
     },
     space: {
         height: 20,

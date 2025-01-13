@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     width: '100%',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'lightgrey',
     paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
