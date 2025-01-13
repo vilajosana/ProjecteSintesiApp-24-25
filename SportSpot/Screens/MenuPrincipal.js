@@ -23,26 +23,31 @@ export default function MenuPrincipal({ navigation }) {
     const loadLocations = async () => {
         try {
             const db = getFirestore();
-            const locationsCollection = collection(db, 'Locations'); // Nom de la col·lecció
+            const locationsCollection = collection(db, 'Locations'); // Nom de la col·lecció a Firebase
             const locationSnapshot = await getDocs(locationsCollection);
-            const locationList = locationSnapshot.docs.map(doc => {
-                const data = doc.data();
-                const location = data.location || {}; // Camp `location` dins de Firebase
-
-                return {
-                    id: doc.id,
-                    title: data.Nom, // Nom de la ubicació
-                    description: data.Geolocation, // Descripció
-                    latitude: location.latitude || 0, // Latitud dins de `location`
-                    longitude: location.longitude || 0, // Longitud dins de `location`
-                    rating: data.rating || 0, // Valoració
-                };
-            });
-            setLocations(locationList);
+            const locationList = locationSnapshot.docs
+                .map((doc) => {
+                    const data = doc.data();
+                    const location = data.location; // Obté el camp `location`
+                    if (location && location.latitude && location.longitude) {
+                        return {
+                            id: doc.id,
+                            name: data.name || 'Sense nom', // Nom de la ubicació
+                            description: data.description || 'Sense descripció', // Descripció de la ubicació
+                            latitude: location.latitude,
+                            longitude: location.longitude,
+                            rating: data.rating || 0, // Valoració per defecte
+                        };
+                    }
+                    return null; // Retorna null si les coordenades no són vàlides
+                })
+                .filter((loc) => loc !== null); // Elimina les ubicacions amb coordenades no vàlides
+            setLocations(locationList); // Estableix l'estat amb les ubicacions vàlides
         } catch (error) {
-            console.error('Error loading locations:', error);
+            console.error('Error carregant ubicacions:', error);
         }
     };
+    
 
     const handlePress = (id) => {
         if (id === 1) {
@@ -124,13 +129,13 @@ export default function MenuPrincipal({ navigation }) {
                                         latitude: location.latitude,
                                         longitude: location.longitude,
                                     }}
-                                    title={location.title}
+                                    title={location.name}
                                     description={location.description}
                                 >
                                     <Callout>
                                         <View style={styles.calloutContainer}>
                                             <Ionicons name="location-outline" size={30} color="black" />
-                                            <Text style={styles.calloutTitle}>{location.title}</Text>
+                                            <Text style={styles.calloutTitle}>{location.name}</Text>
                                             <Text style={styles.calloutDescription}>{location.description}</Text>
                                             <View style={styles.ratingContainer}>
                                                 <Text>⭐ {location.rating}</Text>

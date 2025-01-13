@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { db } from '../utils/firebaseConfig';  // Importa la configuració de Firebase
-import { collection, getDocs, query, where } from 'firebase/firestore';  // Importa els mètodes necessaris de Firestore
+import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';  // Importa els mètodes necessaris de Firestore
 import FSection from '../components/FSection';
 import { Ionicons } from '@expo/vector-icons'; // Asegúrate de tener instalado @expo/vector-icons
 
@@ -13,29 +13,33 @@ const Preferits = ({ navigation, userId }) => {
   const carregarFavorits = async () => {
     try {
       // Consulta per obtenir l'usuari amb un userId determinat
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('userId', '==', userId)); // Assegura't que 'userId' existeixi
-  
-      const querySnapshot = await getDocs(q);
-      console.log('Dades obtingudes:', querySnapshot); // Veure si es retorna alguna dada
-  
-      if (querySnapshot.empty) {
-        console.log('No s\'han trobat favorits per aquest usuari.');
-        setLoading(false); // Finalitza el loading
-        return; // Sortim si no hi ha dades
+      const userRef = doc(db, 'Users', userId); // Referència a l'usuari actual
+      const userSnapshot = await getDoc(userRef);
+      
+      if (userSnapshot.exists()) {
+        const userData = userSnapshot.data();
+        const favoriteIds = userData.favorites || [];  // Obtenim els IDs dels favorits
+
+        if (favoriteIds.length > 0) {
+          // Consulta per obtenir les ubicacions favorites basades en els IDs
+          const locationsRef = collection(db, 'Locations');
+          const locationsQuery = query(locationsRef, where('id', 'in', favoriteIds));
+
+          const querySnapshot = await getDocs(locationsQuery);
+
+          const locationsArray = [];
+          querySnapshot.forEach((doc) => {
+            locationsArray.push({ id: doc.id, ...doc.data() });  // Afegim les dades de cada ubicació
+          });
+
+          // Actualitzem l'estat amb les ubicacions favorites
+          setFavorits(locationsArray);
+        } else {
+          console.log('No hi ha ubicacions favorites.');
+        }
       }
-  
-      const favoritsArray = [];
-      querySnapshot.forEach((doc) => {
-        // Afegeix cada document a la llista de favorits
-        console.log("Document dels favorits:", doc.data());
-        favoritsArray.push(doc.data());
-      });
-  
-      // Actualitza l'estat amb els favorits obtinguts
-      setFavorits(favoritsArray);
-      setLoading(false); // Finalitza el loading
-  
+
+      setLoading(false);  // Finalitza el loading
     } catch (error) {
       console.error('Error carregant els favorits: ', error);
       setLoading(false); // Finalitza el loading en cas d'error
@@ -80,7 +84,7 @@ const Preferits = ({ navigation, userId }) => {
       ) : (
         <FlatList
           data={favorits}  // Carreguem els favorits a la FlatList
-          keyExtractor={(item, index) => index.toString()}  // Utilitzem un index com a key
+          keyExtractor={(item) => item.id}  // Utilitzem el id de la ubicació com a key
           renderItem={({ item }) => (
             <View style={styles.favItem}>
               <Text>{item.name}</Text>  {/* Mostrar un atribut de l'objecte favorit */}
