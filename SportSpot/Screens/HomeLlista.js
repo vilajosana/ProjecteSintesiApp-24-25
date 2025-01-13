@@ -4,7 +4,7 @@ import { Ionicons } from 'react-native-vector-icons';
 import FSection from '../components/FSection';
 import Toast from 'react-native-toast-message'; // Importa Toast directament
 import { firebase } from '../utils/firebaseConfig'; // Importa la configuració de Firebase
-import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default function HomeLlista({ navigation }) {
@@ -44,6 +44,31 @@ export default function HomeLlista({ navigation }) {
         } catch (error) {
             console.error('Error carregant les ubicacions:', error);
             Alert.alert('Error', 'No s\'han pogut carregar les ubicacions');
+        }
+    };
+    
+    const handleSectionChange = (id) => {
+        setCurrentSection(id);  // Actualitza la secció actual
+    };
+    
+    
+    const handlePress = (id) => {
+        // Realitzar la navegació segons el botó premsat
+        switch (id) {
+            case 1:
+                navigation.navigate("MenuPrincipal");
+                break;
+            case 2:
+                navigation.navigate("Preferits");
+                break;
+            case 3:
+                navigation.navigate("AfegirNovaUbicacio");
+                break;
+            case 4:
+                navigation.navigate("Usuari");
+                break;
+            default:
+                break;
         }
     };
 
@@ -91,8 +116,7 @@ export default function HomeLlista({ navigation }) {
         try {
             await updateDoc(locationRef, { rating: rating });
         } catch (error) {
-            console.error('Error actualitzant la valoració:', error);
-            Alert.alert('Error', 'No s\'ha pogut actualitzar la valoració');
+            console.error("Error actualitzant la valoració:", error);
         }
     };
 
@@ -111,7 +135,7 @@ export default function HomeLlista({ navigation }) {
             });
         } catch (error) {
             console.error('Error eliminant la ubicació:', error);
-            Alert.alert('Error', 'No s\'ha pogut eliminar la ubicació');
+            Alert.alert('Error', 'No s\'ha pogut eliminar les ubicacions');
         }
     };
 
@@ -195,11 +219,6 @@ export default function HomeLlista({ navigation }) {
         updateFavoritesInFirestore(id);
     };
 
-    // Funció per gestionar el canvi de secció
-    const handleSectionChange = (section) => {
-        setCurrentSection(section);  // Actualitza la secció actual
-    };
-
     const renderStars = (rating, id) => {
         return Array.from({ length: 5 }, (_, index) => (
             <TouchableOpacity
@@ -223,9 +242,6 @@ export default function HomeLlista({ navigation }) {
                 <View style={styles.itemTextContainer}>
                     <Text style={styles.itemTitle}>{item.name}</Text> {/* Mostrem el name */}
                     <Text style={styles.itemDescription}>{item.description}</Text> {/* Mostrem la description */}
-                    <Text style={styles.itemDescription}>
-                        Lat: {item.latitude}, Long: {item.longitude} {/* Mostrem la latitud i longitud */}
-                    </Text>
                 </View>
                 <View style={styles.itemInfo}>
                     <View style={styles.starsContainer}>
@@ -245,13 +261,12 @@ export default function HomeLlista({ navigation }) {
             </View>
         </View>
     );
-    
 
     return (
         <View style={{ flex: 1, marginTop: 50 }}>
             <View style={styles.headerContainer}>
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Allinfo')}>
+                    <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Info')}>
                         <Ionicons name="ellipsis-vertical" size={24} color="black" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Home Llista</Text>

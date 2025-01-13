@@ -23,17 +23,21 @@ const Preferits = ({ navigation, userId }) => {
         if (favoriteIds.length > 0) {
           // Consulta per obtenir les ubicacions favorites basades en els IDs
           const locationsRef = collection(db, 'Locations');
-          const locationsQuery = query(locationsRef, where('id', 'in', favoriteIds));
-
-          const querySnapshot = await getDocs(locationsQuery);
-
-          const locationsArray = [];
-          querySnapshot.forEach((doc) => {
-            locationsArray.push({ id: doc.id, ...doc.data() });  // Afegim les dades de cada ubicació
+          
+          // Si tens una gran quantitat de favorites, utilitza el mètode batch (un grup de consultes) o fes diverses consultes
+          const locationPromises = favoriteIds.map(async (favId) => {
+            const locationRef = doc(db, 'Locations', favId);
+            const locationSnapshot = await getDoc(locationRef);
+            if (locationSnapshot.exists()) {
+              return { id: locationSnapshot.id, ...locationSnapshot.data() };
+            }
           });
 
+          // Esperar totes les ubicacions favorites
+          const locationsArray = await Promise.all(locationPromises);
+
           // Actualitzem l'estat amb les ubicacions favorites
-          setFavorits(locationsArray);
+          setFavorits(locationsArray.filter(location => location !== undefined));
         } else {
           console.log('No hi ha ubicacions favorites.');
         }

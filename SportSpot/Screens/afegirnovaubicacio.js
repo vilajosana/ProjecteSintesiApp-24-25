@@ -7,6 +7,7 @@ import * as Location from 'expo-location';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, collection, addDoc, updateDoc, getDoc } from 'firebase/firestore'; 
 import { useLocationContext } from '../Screens/LocationContext';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function AfegirNovaUbicacio({ navigation }) {
   const [cameraPermission, setCameraPermission] = useState(false);
@@ -36,7 +37,7 @@ export default function AfegirNovaUbicacio({ navigation }) {
         Alert.alert("Permís de localització denegat", "No pots accedir a la teva ubicació.");
       } else {
         const userLocation = await Location.getCurrentPositionAsync({});
-        setLocation(userLocation.coords);
+        setLocation(userLocation.coords);  // Actualitzem la ubicació actual
       }
     };
 
@@ -151,6 +152,15 @@ export default function AfegirNovaUbicacio({ navigation }) {
     }
   };
 
+  const handleMapPress = (e) => {
+    const coordinate = e.nativeEvent.coordinate;
+    setLocation(coordinate); // Actualitzem la ubicació seleccionada
+  };
+
+  if (!location) {
+    return <Text>Cargando mapa...</Text>;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -182,6 +192,20 @@ export default function AfegirNovaUbicacio({ navigation }) {
           {renderStars()}
         </View>
       </View>
+
+      {/* Mapa amb Marker per seleccionar la ubicació */}
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+        onPress={handleMapPress}
+      >
+        <Marker coordinate={location} />
+      </MapView>
 
       {/* Botó per seleccionar foto de càmera o galeria */}
       <TouchableOpacity style={styles.cameraButton} onPress={() => {
@@ -284,6 +308,11 @@ const styles = StyleSheet.create({
   },
   starButton: {
     marginRight: 5,
+  },
+  map: {
+    width: '100%',
+    height: 300,
+    marginBottom: 20,
   },
   cameraButton: {
     backgroundColor: '#ff6347',
