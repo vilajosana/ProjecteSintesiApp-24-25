@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../utils/firebaseConfig'; // Importa el teu fitxer de configuració de Firebase
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Funció per iniciar sessió amb un usuari
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Funció per iniciar sessió amb un usuari
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionado por defecto
+  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionat per defecte
 
   const handleLogin = () => {
     if (email === '' || password === '') {
@@ -89,9 +89,9 @@ const Login = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center', // Centrado verticalmente
-    alignItems: 'center', // Centrado horizontalmente
-    backgroundColor: '#F5F5F5', // Fondo gris claro
+    justifyContent: 'center', // Centrat verticalment
+    alignItems: 'center', // Centrat horitzontalment
+    backgroundColor: '#F5F5F5', // Fons gris clar
   },
   header: {
     width: '100%',
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     marginBottom: 20,
-    width: '80%', // Ancho del formulario
+    width: '80%', // Amplada del formulari
     minHeight: 270,
     alignItems: 'center',
     justifyContent: 'center',
@@ -134,28 +134,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonSelected: {
-    backgroundColor: '#FF6347', // Rojo más intenso
+    backgroundColor: '#FF6347', // Vermell més intens
   },
   buttonTransparent: {
-    opacity: 0.3, // Transparente para los botones no seleccionados
+    opacity: 0.3, // Transparent per als botons no seleccionats
   },
   buttonText: {
     fontSize: 16,
-    color: 'black', // Texto en negro
+    color: 'black', // Text en negre
   },
   input: {
     height: 50,
-    borderColor: '#D1D1D1', // Borde gris suave
+    borderColor: '#D1D1D1', // Borde gris suau
     borderWidth: 1,
-    borderRadius: 10, // Bordes redondeados
+    borderRadius: 10, // Bordes arrodonits
     marginBottom: 15,
     paddingLeft: 15,
-    backgroundColor: '#F9F9F9', // Fondo gris claro en los inputs
+    backgroundColor: '#F9F9F9', // Fons gris clar als inputs
     fontSize: 16,
-    width: '100%', // Asegura que el campo ocupe todo el espacio disponible
+    width: '100%', // Assegura que el camp ocupi tot l'espai disponible
   },
   loginButton: {
-    backgroundColor: '#F08080', // Color de botón rosado
+    backgroundColor: '#F08080', // Color de botó rosat
     padding: 10,
     borderRadius: 10,
     width: '70%',
@@ -163,11 +163,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   loginButtonText: {
-    color: 'black', // Texto en negro
+    color: 'black', // Text en negre
     fontSize: 16,
   },
   registerText: {
-    color: '#F08080', // Texto de registro en rosado
+    color: '#F08080', // Text de registre en rosat
     textAlign: 'center',
     marginTop: 15,
     fontSize: 16,

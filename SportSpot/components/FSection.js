@@ -8,7 +8,7 @@ export default function FSection({ currentSection, onPress, navigation }) {
         onPress(id);  // Actualitza la secció actual
         // Aquí pots afegir la navegació corresponent segons l'ID del botó
         if (id === 1) {
-            navigation.navigate("Home");
+            navigation.navigate("MenuPrincipal");
         } else if (id === 2) {
             navigation.navigate("Preferits");
         } else if (id === 3) {

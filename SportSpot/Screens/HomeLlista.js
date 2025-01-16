@@ -240,8 +240,8 @@ export default function HomeLlista({ navigation }) {
             <Ionicons name="location-outline" size={24} color="black" style={styles.mapPinIcon} />
             <View style={styles.itemContent}>
                 <View style={styles.itemTextContainer}>
-                    <Text style={styles.itemTitle}>{item.name}</Text> {/* Mostrem el name */}
-                    <Text style={styles.itemDescription}>{item.description}</Text> {/* Mostrem la description */}
+                <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
+                <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
                 </View>
                 <View style={styles.itemInfo}>
                     <View style={styles.starsContainer}>
@@ -261,6 +261,7 @@ export default function HomeLlista({ navigation }) {
             </View>
         </View>
     );
+    
 
     return (
         <View style={{ flex: 1, marginTop: 50 }}>
@@ -273,15 +274,15 @@ export default function HomeLlista({ navigation }) {
                 </View>
 
                 <View style={styles.buttonArea}>
-                    <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => navigation.navigate('MenuPrincipal')}
-                    >
-                        <Text style={styles.buttonText}>Mapa</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.buttonSelected]}>
-                        <Text style={styles.buttonText}>Llista</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => navigation.navigate('MenuPrincipal')}
+                >
+                    <Text style={styles.buttonText}>Mapa</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.button, styles.buttonSelected]}>
+                    <Text style={styles.buttonText}>Llista</Text>
+                </TouchableOpacity>
                 </View>
             </View>
 
