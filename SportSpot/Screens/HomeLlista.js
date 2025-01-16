@@ -240,8 +240,10 @@ export default function HomeLlista({ navigation }) {
             <Ionicons name="location-outline" size={24} color="black" style={styles.mapPinIcon} />
             <View style={styles.itemContent}>
                 <View style={styles.itemTextContainer}>
-                <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
-                <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('InformacionFicha', { locationId: item.id })}>
+                        <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
                 </View>
                 <View style={styles.itemInfo}>
                     <View style={styles.starsContainer}>
@@ -261,6 +263,7 @@ export default function HomeLlista({ navigation }) {
             </View>
         </View>
     );
+    
     
 
     return (

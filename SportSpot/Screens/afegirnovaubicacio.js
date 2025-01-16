@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, TextInput, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
@@ -8,53 +8,57 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, collection, addDoc, updateDoc, getDoc } from 'firebase/firestore'; 
 import { useLocationContext } from '../Screens/LocationContext';
 import MapView, { Marker } from 'react-native-maps';
+import FSection from '../components/FSection';
 
 export default function AfegirNovaUbicacio({ navigation }) {
   const [cameraPermission, setCameraPermission] = useState(false);
-  const [photos, setPhotos] = useState([]); // Array per guardar múltiples fotos
+  const [photos, setPhotos] = useState([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [rating, setRating] = useState(0);
   const [location, setLocation] = useState(null);
+  const [initialRegion, setInitialRegion] = useState(null); // Per guardar la regió inicial del mapa
   const { addLocation } = useLocationContext();
 
   const auth = getAuth();
   const db = getFirestore();
 
   useEffect(() => {
-    const requestCameraPermission = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      if (status === 'granted') {
-        setCameraPermission(true);
-      } else {
-        Alert.alert("Permís de càmera denegat", "No pots accedir a la càmera.");
-      }
-    };
+    const requestPermissions = async () => {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      setCameraPermission(cameraStatus.status === 'granted');
 
-    const requestLocationPermission = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert("Permís de localització denegat", "No pots accedir a la teva ubicació.");
-      } else {
+      const locationStatus = await Location.requestForegroundPermissionsAsync();
+      if (locationStatus.status === 'granted') {
         const userLocation = await Location.getCurrentPositionAsync({});
-        setLocation(userLocation.coords);  // Actualitzem la ubicació actual
+        const coords = userLocation.coords;
+
+        // Configurar la ubicació inicial i el marcador al mapa
+        setInitialRegion({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        });
+        setLocation(coords);
+      } else {
+        Alert.alert(
+          "Permisos de localització denegats",
+          "No es pot obtenir la ubicació inicial. Es farà servir una posició per defecte."
+        );
+
+        // Ubicació per defecte en cas de no tenir permisos
+        setInitialRegion({
+          latitude: 41.3851,
+          longitude: 2.1734,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        });
       }
     };
 
-    requestCameraPermission();
-    requestLocationPermission();
+    requestPermissions();
   }, []);
-
-  const handlePress = (id) => {
-    console.log("Han clicat al botó " + id);
-    if (id === 1) {
-      navigation.navigate("MenuPrincipal");
-    } else if (id === 2) {
-      navigation.navigate("Preferits");
-    } else if (id === 4) {
-      navigation.navigate("Usuari");
-    }
-  };
 
   const handlePhotoSelection = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -64,7 +68,7 @@ export default function AfegirNovaUbicacio({ navigation }) {
     });
 
     if (!result.canceled) {
-      setPhotos([...photos, result.assets[0].uri]); // Afegir la foto seleccionada a l'array
+      setPhotos([...photos, result.assets[0].uri]);
     }
   };
 
@@ -77,7 +81,7 @@ export default function AfegirNovaUbicacio({ navigation }) {
       });
 
       if (!result.canceled) {
-        setPhotos([...photos, result.assets[0].uri]); // Afegir la foto capturada a l'array
+        setPhotos([...photos, result.assets[0].uri]);
       }
     } else {
       Alert.alert("Permís de càmera", "Per favor, habilita els permisos per a usar la càmera.");
@@ -105,7 +109,6 @@ export default function AfegirNovaUbicacio({ navigation }) {
   };
 
   const handleRemovePhoto = (uri) => {
-    // Mostrar un alert per confirmar l'eliminació de la foto
     Alert.alert(
       "Confirmar eliminació",
       "Estàs segur que vols eliminar aquesta foto?",
@@ -121,10 +124,8 @@ export default function AfegirNovaUbicacio({ navigation }) {
       try {
         const newLocation = { name, description, rating, location, photos };
 
-        // Afegir la nova ubicació a la col·lecció Locations
         const locationRef = await addDoc(collection(db, 'Locations'), newLocation);
 
-        // Afegir la ubicació a la llista de l'usuari
         const currentUser = auth.currentUser;
         if (currentUser) {
           const userRef = doc(db, 'Users', currentUser.uid);
@@ -134,12 +135,10 @@ export default function AfegirNovaUbicacio({ navigation }) {
             const userData = userSnapshot.data();
             const updatedLocations = [...(userData.locations || []), locationRef.id];
 
-            // Actualitzar la llista d'ubicacions de l'usuari
             await updateDoc(userRef, { locations: updatedLocations });
           }
         }
 
-        // Un cop afegida la ubicació, mostra un missatge d'èxit i redirigeix
         Alert.alert('Ubicació afegida!', 'La ubicació s\'ha afegit correctament.');
         navigation.navigate("MenuPrincipal");
 
@@ -154,212 +153,100 @@ export default function AfegirNovaUbicacio({ navigation }) {
 
   const handleMapPress = (e) => {
     const coordinate = e.nativeEvent.coordinate;
-    setLocation(coordinate); // Actualitzem la ubicació seleccionada
+    setLocation(coordinate);
   };
-
-  if (!location) {
-    return <Text>Cargando mapa...</Text>;
-  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handlePress} style={styles.headerIcon}>
-          <Ionicons name="ellipsis-vertical" size={24} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Afegir Nova Ubicació</Text>
-      </View>
-
-      <View style={styles.formContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nom de la ubicació"
-          value={name}
-          onChangeText={setName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Descripció"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
-        <View style={styles.starsContainer}>
-          <Text style={styles.starsLabel}>Valoració:</Text>
-          {renderStars()}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Recuadre superior */}
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerText}>Informació Fitxa</Text>
         </View>
-      </View>
 
-      {/* Mapa amb Marker per seleccionar la ubicació */}
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-        onPress={handleMapPress}
-      >
-        <Marker coordinate={location} />
-      </MapView>
-
-      {/* Botó per seleccionar foto de càmera o galeria */}
-      <TouchableOpacity style={styles.cameraButton} onPress={() => {
-        Alert.alert(
-          "Selecciona una opció",
-          "Tria una opció per afegir una foto",
-          [
-            { text: "Càmera", onPress: handleCameraButtonPress },
-            { text: "Galeria", onPress: handlePhotoSelection },
-            { text: "Cancel·lar", style: "cancel" }
-          ]
-        );
-      }}>
-        <Text style={styles.cameraButtonText}>Afegir Foto</Text>
-      </TouchableOpacity>
-
-      {/* Mostrar les fotos seleccionades */}
-      {photos.length > 0 && (
-        <View style={styles.imageContainer}>
-          <View style={styles.photosContainer}>
-            {photos.map((photoUri, index) => (
-              <TouchableOpacity key={index} onPress={() => handleRemovePhoto(photoUri)}>
-                <Image source={{ uri: photoUri }} style={styles.image} />
-              </TouchableOpacity>
-            ))}
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nom de la ubicació"
+            value={name}
+            onChangeText={setName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Descripció"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+          <View style={styles.starsContainer}>
+            <Text style={styles.starsLabel}>Valoració:</Text>
+            {renderStars()}
           </View>
         </View>
-      )}
 
-      {/* Botó per afegir la ubicació */}
-      <TouchableOpacity style={styles.addLocationButton} onPress={handleAddLocation}>
-        <Text style={styles.addLocationButtonText}>Afegir Ubicació</Text>
-      </TouchableOpacity>
+        {initialRegion && (
+          <MapView
+            style={styles.map}
+            initialRegion={initialRegion}
+            onPress={handleMapPress}
+          >
+            {location && <Marker coordinate={location} />}
+          </MapView>
+        )}
 
-      {/* Secció amb els 4 botons dins del recuadre */}
-      <View style={styles.footer}>
-        <View style={styles.footerButtonsContainer}>
-          <TouchableOpacity onPress={() => handlePress(1)} style={styles.footerButton}>
-            <Ionicons name="home" size={24} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePress(2)} style={styles.footerButton}>
-            <Ionicons name="heart-outline" size={24} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePress(3)} style={styles.footerButton}>
-            <Ionicons name="add-circle-outline" size={24} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handlePress(4)} style={styles.footerButton}>
-            <Ionicons name="person-circle-outline" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-      </View>
+        <TouchableOpacity style={styles.cameraButton} onPress={handlePhotoSelection}>
+          <Text style={styles.cameraButtonText}>Afegir Foto</Text>
+        </TouchableOpacity>
 
+        {photos.length > 0 && (
+          <View style={styles.imageContainer}>
+            <View style={styles.photosContainer}>
+              {photos.map((photoUri, index) => (
+                <TouchableOpacity key={index} onPress={() => handleRemovePhoto(photoUri)}>
+                  <Image source={{ uri: photoUri }} style={styles.image} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <TouchableOpacity style={styles.addLocationButton} onPress={handleAddLocation}>
+          <Text style={styles.addLocationButtonText}>Afegir Ubicació</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {/* FSection a la part inferior */}
+      <FSection
+        currentSection={3}
+        onPress={(id) => console.log("Botó seleccionat:", id)}
+        navigation={navigation}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: '#808080',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  headerIcon: {
-    marginRight: 12,
-    padding: 6,
-    borderRadius: 20,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  formContainer: {
-    padding: 20,
-  },
-  input: {
-    height: 45,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  starsLabel: {
-    fontSize: 18,
-    marginRight: 10,
-  },
-  starButton: {
-    marginRight: 5,
-  },
-  map: {
-    width: '100%',
-    height: 300,
-    marginBottom: 20,
-  },
-  cameraButton: {
-    backgroundColor: '#ff6347',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  cameraButtonText: {
-    color: '#fff',
-  },
-  addLocationButton: {
+  container: { flex: 1 },
+  scrollContainer: { flexGrow: 1, justifyContent: 'space-between' },
+  headerContainer: {
     backgroundColor: '#4CAF50',
     padding: 15,
-    borderRadius: 10,
     alignItems: 'center',
-    marginTop: 20,
+    marginBottom: 15,
+    marginTop: 40, // Afegeix espai a la part superior per evitar la iloteta
   },
-  addLocationButtonText: {
-    fontSize: 18,
-    color: '#fff',
+  headerText: {
+    fontSize: 20,
+    color: 'white',
+    fontWeight: 'bold',
   },
-  imageContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  image: {
-    width: 150,
-    height: 150,
-    margin: 5,
-  },
-  photosContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
-  footer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: '#fff',
-  },
-  footerButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingBottom: 10,
-    paddingTop: 10,
-  },
-  footerButton: {
-    padding: 10,
-  },
+  formContainer: { paddingHorizontal: 20 },
+  input: { height: 45, borderColor: '#ccc', borderWidth: 1, borderRadius: 10, marginBottom: 15, paddingHorizontal: 10 },
+  starsContainer: { flexDirection: 'row', marginBottom: 20 },
+  starsLabel: { fontSize: 18, marginRight: 10 },
+  map: { width: '100%', height: 300, marginBottom: 20 },
+  cameraButton: { backgroundColor: '#ff6347', padding: 15, borderRadius: 10, alignItems: 'center' },
+  addLocationButton: { backgroundColor: '#4CAF50', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
+  imageContainer: { alignItems: 'center', marginTop: 20 },
+  image: { width: 150, height: 150, margin: 5 },
 });
