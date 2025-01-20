@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, TextInput, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Image, TextInput, ScrollView, ActionSheetIOS } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
@@ -61,15 +61,22 @@ export default function AfegirNovaUbicacio({ navigation }) {
   }, []);
 
   const handlePhotoSelection = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setPhotos([...photos, result.assets[0].uri]);
-    }
+    // Creem una acció de selecció per l'usuari
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ['Cancelar', 'Fer una foto', 'Seleccionar des de la galeria'],
+        cancelButtonIndex: 0,
+      },
+      async (buttonIndex) => {
+        if (buttonIndex === 1) {
+          // Si es tria "Fer una foto"
+          await handleCameraButtonPress();
+        } else if (buttonIndex === 2) {
+          // Si es tria "Seleccionar des de la galeria"
+          await handleGallerySelection();
+        }
+      }
+    );
   };
 
   const handleCameraButtonPress = async () => {
@@ -85,6 +92,18 @@ export default function AfegirNovaUbicacio({ navigation }) {
       }
     } else {
       Alert.alert("Permís de càmera", "Per favor, habilita els permisos per a usar la càmera.");
+    }
+  };
+
+  const handleGallerySelection = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setPhotos([...photos, result.assets[0].uri]);
     }
   };
 
@@ -194,6 +213,7 @@ export default function AfegirNovaUbicacio({ navigation }) {
           </MapView>
         )}
 
+        {/* Botó per seleccionar foto */}
         <TouchableOpacity style={styles.cameraButton} onPress={handlePhotoSelection}>
           <Text style={styles.cameraButtonText}>Afegir Foto</Text>
         </TouchableOpacity>
