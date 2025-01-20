@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, Dimensions, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { View, Text, StyleSheet, Button, Dimensions, TouchableOpacity, FlatList, Image, ScrollView, Platform } from 'react-native';
 import { firebase } from '../utils/firebaseConfig'; // Configuració de Firebase
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import FSection from '../components/FSection';
@@ -32,6 +31,7 @@ const InformacionFicha = ({ route, navigation }) => {
                         latitude: data.location?.latitude || 41.722,
                         longitude: data.location?.longitude || 1.888,
                         rating: data.rating || 0,
+                        photos: data.photos || [], // Carreguem les fotos si existeixen
                     };
                     setLocation(locationData);
                 } else {
@@ -75,8 +75,8 @@ const InformacionFicha = ({ route, navigation }) => {
                 </View>
             </View>
 
-            {/* Contingut principal */}
-            <View style={styles.contentContainer}>
+            {/* Contingut principal amb ScrollView */}
+            <ScrollView style={styles.contentContainer}>
                 {/* Recuadre per al nom */}
                 <View style={styles.nameContainer}>
                     <Text style={styles.nameText}>{location.name}</Text>
@@ -90,29 +90,23 @@ const InformacionFicha = ({ route, navigation }) => {
                     </Text>
                 </View>
 
-                {/* Mapa en un recuadre arrodonit */}
-                <View style={styles.roundedMapContainer}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: location.latitude,
-                            longitude: location.longitude,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421,
-                        }}
-                    >
-                        <Marker
-                            coordinate={{
-                                latitude: location.latitude,
-                                longitude: location.longitude,
-                            }}
-                            title={location.name}
+                {/* Carrusel de fotos */}
+                {location.photos.length > 0 && (
+                    <View style={styles.photosContainer}>
+                        <FlatList
+                            data={location.photos}
+                            keyExtractor={(item, index) => index.toString()}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            renderItem={({ item }) => (
+                                <Image source={{ uri: item }} style={styles.photo} />
+                            )}
                         />
-                    </MapView>
-                </View>
-            </View>
+                    </View>
+                )}
+            </ScrollView>
 
-            {/* FSection */}
+            {/* FSection fix a la part inferior */}
             <View style={styles.section}>
                 <FSection currentSection={1} onPress={(id) => console.log(id)} navigation={navigation} />
             </View>
@@ -134,6 +128,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         padding: 10,
         borderBottomWidth: 1,
+        marginTop: 50,
         borderBottomColor: '#ddd',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -155,9 +150,10 @@ const styles = StyleSheet.create({
         color: 'black',
     },
     contentContainer: {
-        flex: 7,
+        flex: 1,
         paddingHorizontal: 20,
-        paddingTop: 10,
+        paddingTop: Platform.OS === 'ios' ? 40 : 10, // Afegim marginTop per a iOS
+        paddingBottom: 80, // Espai per al FSection fixat a la part inferior
     },
     nameContainer: {
         backgroundColor: '#fff5e6',
@@ -199,23 +195,24 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#ff6347',
     },
-    roundedMapContainer: {
-        width: '100%',
-        height: height * 0.4,
-        borderRadius: 15,
-        overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+    photosContainer: {
         marginBottom: 15,
     },
-    map: {
-        width: '100%',
-        height: '100%',
+    photo: {
+        width: width * 0.7,
+        height: height * 0.3,
+        marginRight: 10,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ddd',
     },
     section: {
-        flex: 1,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingBottom: 10,
+        zIndex: 10,
     },
     errorText: {
         fontSize: 18,
