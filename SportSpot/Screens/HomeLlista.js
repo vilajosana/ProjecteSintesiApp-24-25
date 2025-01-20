@@ -37,6 +37,7 @@ export default function HomeLlista({ navigation }) {
                     rating: data.rating || 0,
                     latitude: location.latitude, // Latitud
                     longitude: location.longitude, // Longitud
+                    category: data.category || 'Sense categoria',  // Afegir categoria
                     favorite: data.favorite || false,
                 };
             }).filter((location) => location !== null); // Elimina ubicacions no vàlides
@@ -46,12 +47,11 @@ export default function HomeLlista({ navigation }) {
             Alert.alert('Error', 'No s\'han pogut carregar les ubicacions');
         }
     };
-    
+
     const handleSectionChange = (id) => {
         setCurrentSection(id);  // Actualitza la secció actual
     };
-    
-    
+
     const handlePress = (id) => {
         // Realitzar la navegació segons el botó premsat
         switch (id) {
@@ -244,6 +244,7 @@ export default function HomeLlista({ navigation }) {
                         <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
                     </TouchableOpacity>
                     <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
+                    <Text style={styles.itemcaregory}>{item.category}</Text> {/* Mostra la categoria */}
                 </View>
                 <View style={styles.itemInfo}>
                     <View style={styles.starsContainer}>
@@ -263,8 +264,6 @@ export default function HomeLlista({ navigation }) {
             </View>
         </View>
     );
-    
-    
 
     return (
         <View style={{ flex: 1, marginTop: 50 }}>
@@ -277,15 +276,15 @@ export default function HomeLlista({ navigation }) {
                 </View>
 
                 <View style={styles.buttonArea}>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => navigation.navigate('MenuPrincipal')}
-                >
-                    <Text style={styles.buttonText}>Mapa</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.buttonSelected]}>
-                    <Text style={styles.buttonText}>Llista</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => navigation.navigate('MenuPrincipal')}
+                    >
+                        <Text style={styles.buttonText}>Mapa</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.buttonSelected]}>
+                        <Text style={styles.buttonText}>Llista</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -328,7 +327,6 @@ const styles = StyleSheet.create({
     buttonArea: {
         flexDirection: 'row',
         justifyContent: 'center',
-
     },
     button: {
         backgroundColor: 'transparent',
@@ -375,6 +373,11 @@ const styles = StyleSheet.create({
     },
     itemDescription: {
         fontSize: 14,
+        color: 'gray',
+    },
+    itemcaregory: {
+        fontSize: 14,
+        fontStyle: 'italic',
         color: 'gray',
     },
     itemInfo: {

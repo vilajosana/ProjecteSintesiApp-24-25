@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
 import { db } from '../utils/firebaseConfig';  // Importa la configuració de Firebase
 import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';  // Importa els mètodes necessaris de Firestore
 import FSection from '../components/FSection';
@@ -12,6 +12,12 @@ const Preferits = ({ navigation, userId }) => {
   // Carregar favorits des de Firestore
   const carregarFavorits = async () => {
     try {
+      // Comprovem que tenim un userId
+      if (!userId) {
+        Alert.alert('Error', 'No es pot carregar les ubicacions favorites sense un ID d\'usuari vàlid.');
+        return;
+      }
+
       // Consulta per obtenir l'usuari amb un userId determinat
       const userRef = doc(db, 'Users', userId); // Referència a l'usuari actual
       const userSnapshot = await getDoc(userRef);
@@ -40,7 +46,10 @@ const Preferits = ({ navigation, userId }) => {
           setFavorits(locationsArray.filter(location => location !== undefined));
         } else {
           console.log('No hi ha ubicacions favorites.');
+          setFavorits([]);  // Si no hi ha favorites, netegem el llistat
         }
+      } else {
+        Alert.alert('Error', 'Usuari no trobat.');
       }
 
       setLoading(false);  // Finalitza el loading

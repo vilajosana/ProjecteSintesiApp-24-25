@@ -28,6 +28,7 @@ const InformacionFicha = ({ route, navigation }) => {
                         id: locationSnap.id,
                         name: data.name || 'Sense nom',
                         description: data.description || 'Sense descripció',
+                        category: data.category,
                         latitude: data.location?.latitude || 41.722,
                         longitude: data.location?.longitude || 1.888,
                         rating: data.rating || 0,
@@ -88,6 +89,10 @@ const InformacionFicha = ({ route, navigation }) => {
                     <Text style={styles.ratingText}>
                         {'★'.repeat(location.rating) + '☆'.repeat(5 - location.rating)}
                     </Text>
+                </View>
+
+                <View style={styles.categoryContainer}>
+                    <Text style={styles.category}>{location.category}</Text>
                 </View>
 
                 {/* Carrusel de fotos */}
@@ -189,6 +194,18 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 10,
         color: '#333',
+    },
+    categoryContainer: {
+    backgroundColor: '#f9f9f9',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     },
     ratingText: {
         fontSize: 16,

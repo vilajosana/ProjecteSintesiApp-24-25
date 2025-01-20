@@ -33,6 +33,7 @@ export default function MenuPrincipal({ navigation }) {
                             latitude: location.latitude,
                             longitude: location.longitude,
                             rating: data.rating || 0, // Valoració per defecte
+                            category: data.category || 'Desconeguda', // Afegeix la categoria
                         };
                     }
                     return null; // Retorna null si les coordenades no són vàlides
@@ -133,6 +134,8 @@ export default function MenuPrincipal({ navigation }) {
                                             <Ionicons name="location-outline" size={30} color="black" />
                                             <Text style={styles.calloutTitle}>{location.name}</Text>
                                             <Text style={styles.calloutDescription}>{location.description}</Text>
+                                            {/* Categoria dins del Text */}
+                                            <Text style={styles.calloutDescription}>{location.category}</Text>
                                             <View style={styles.ratingContainer}>
                                                 <Text>⭐ {location.rating}</Text>
                                             </View>

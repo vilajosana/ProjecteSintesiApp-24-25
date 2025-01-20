@@ -17,7 +17,8 @@ export default function AfegirNovaUbicacio({ navigation }) {
   const [description, setDescription] = useState('');
   const [rating, setRating] = useState(0);
   const [location, setLocation] = useState(null);
-  const [initialRegion, setInitialRegion] = useState(null); // Per guardar la regió inicial del mapa
+  const [category, setCategory] = useState(''); // Estat per emmagatzemar la categoria seleccionada
+  const [initialRegion, setInitialRegion] = useState(null);
   const { addLocation } = useLocationContext();
 
   const auth = getAuth();
@@ -33,7 +34,6 @@ export default function AfegirNovaUbicacio({ navigation }) {
         const userLocation = await Location.getCurrentPositionAsync({});
         const coords = userLocation.coords;
 
-        // Configurar la ubicació inicial i el marcador al mapa
         setInitialRegion({
           latitude: coords.latitude,
           longitude: coords.longitude,
@@ -47,7 +47,6 @@ export default function AfegirNovaUbicacio({ navigation }) {
           "No es pot obtenir la ubicació inicial. Es farà servir una posició per defecte."
         );
 
-        // Ubicació per defecte en cas de no tenir permisos
         setInitialRegion({
           latitude: 41.3851,
           longitude: 2.1734,
@@ -61,7 +60,6 @@ export default function AfegirNovaUbicacio({ navigation }) {
   }, []);
 
   const handlePhotoSelection = async () => {
-    // Creem una acció de selecció per l'usuari
     ActionSheetIOS.showActionSheetWithOptions(
       {
         options: ['Cancelar', 'Fer una foto', 'Seleccionar des de la galeria'],
@@ -69,10 +67,8 @@ export default function AfegirNovaUbicacio({ navigation }) {
       },
       async (buttonIndex) => {
         if (buttonIndex === 1) {
-          // Si es tria "Fer una foto"
           await handleCameraButtonPress();
         } else if (buttonIndex === 2) {
-          // Si es tria "Seleccionar des de la galeria"
           await handleGallerySelection();
         }
       }
@@ -139,9 +135,9 @@ export default function AfegirNovaUbicacio({ navigation }) {
   };
 
   const handleAddLocation = async () => {
-    if (name && description && location) {
+    if (name && description && location && category) {
       try {
-        const newLocation = { name, description, rating, location, photos };
+        const newLocation = { name, description, rating, location, category, photos };
 
         const locationRef = await addDoc(collection(db, 'Locations'), newLocation);
 
@@ -175,6 +171,8 @@ export default function AfegirNovaUbicacio({ navigation }) {
     setLocation(coordinate);
   };
 
+  const categories = ['Futbol', 'Bàsquet', 'Pàdel', 'Atletisme', 'Skatepark', 'Altres'];
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -200,6 +198,20 @@ export default function AfegirNovaUbicacio({ navigation }) {
           <View style={styles.starsContainer}>
             <Text style={styles.starsLabel}>Valoració:</Text>
             {renderStars()}
+          </View>
+
+          {/* Selecció de categoria */}
+          <Text style={styles.categoryLabel}>Categoria:</Text>
+          <View style={styles.categoryContainer}>
+            {categories.map((cat, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.categoryButton, category === cat && styles.selectedCategory]}
+                onPress={() => setCategory(cat)}
+              >
+                <Text style={styles.categoryButtonText}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -253,7 +265,7 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     marginBottom: 15,
-    marginTop: 40, // Afegeix espai a la part superior per evitar la iloteta
+    marginTop: 40,
   },
   headerText: {
     fontSize: 20,
@@ -269,4 +281,9 @@ const styles = StyleSheet.create({
   addLocationButton: { backgroundColor: '#4CAF50', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
   imageContainer: { alignItems: 'center', marginTop: 20 },
   image: { width: 150, height: 150, margin: 5 },
+  categoryLabel: { fontSize: 18, marginBottom: 10 },
+  categoryContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 },
+  categoryButton: { backgroundColor: '#e0e0e0', padding: 10, borderRadius: 5, margin: 5 },
+  selectedCategory: { backgroundColor: '#4CAF50' },
+  categoryButtonText: { color: '#333' },
 });
