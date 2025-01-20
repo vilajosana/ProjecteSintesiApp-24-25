@@ -191,7 +191,9 @@ export default function HomeLlista({ navigation }) {
                 Toast.show({
                     type: 'success',
                     position: 'bottom',
-                    text1: 'Ubicació afegida als teus preferits!',
+                    text1: updatedFavorites.includes(locationId)
+                        ? 'Ubicació afegida als teus preferits!'
+                        : 'Ubicació eliminada dels teus preferits!',
                     visibilityTime: 1500,
                 });
             }
@@ -216,6 +218,10 @@ export default function HomeLlista({ navigation }) {
 
     // Manejar clic en el cor
     const handleHeartPress = (id) => {
+        if (!user) {
+            Alert.alert('Error', 'Necessites iniciar sessió per afegir preferits.');
+            return;
+        }
         updateFavoritesInFirestore(id);
     };
 
@@ -235,6 +241,18 @@ export default function HomeLlista({ navigation }) {
         ));
     };
 
+    const renderHeart = (favorite, id) => {
+        return (
+            <TouchableOpacity onPress={() => handleHeartPress(id)}>
+                <Ionicons
+                    name="heart-outline"
+                    size={24}
+                    color={favorite ? 'red' : 'black'}
+                />
+            </TouchableOpacity>
+        );
+    };
+
     const renderItem = ({ item }) => (
         <View style={styles.item}>
             <Ionicons name="location-outline" size={24} color="black" style={styles.mapPinIcon} />
@@ -250,13 +268,7 @@ export default function HomeLlista({ navigation }) {
                     <View style={styles.starsContainer}>
                         {renderStars(item.rating, item.id)}
                     </View>
-                    <TouchableOpacity onPress={() => handleHeartPress(item.id)}>
-                        <Ionicons
-                            name="heart-outline"
-                            size={24}
-                            color={item.favorite ? 'red' : 'black'}
-                        />
-                    </TouchableOpacity>
+                    {renderHeart(item.favorite, item.id)}  {/* Afegir el cor */}
                     <TouchableOpacity onPress={() => handleDeletePress(item.id)}>
                         <Ionicons name="ellipsis-vertical" size={24} color="black" />
                     </TouchableOpacity>

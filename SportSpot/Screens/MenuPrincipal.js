@@ -4,15 +4,12 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 import FSection from '../components/FSection';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Filter from '../components/filter';
 import * as Animatable from 'react-native-animatable';
 import { firebase } from '../utils/firebaseConfig'; // Configuració de Firebase
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 
 export default function MenuPrincipal({ navigation }) {
     const [isMapVisible, setIsMapVisible] = useState(true);
-    const [isFilterVisible, setFilterVisible] = useState(false);
-    const [selectedZones, setSelectedZones] = useState([]);
     const [locations, setLocations] = useState([]); // Estat per emmagatzemar les ubicacions
 
     useEffect(() => {
@@ -66,10 +63,6 @@ export default function MenuPrincipal({ navigation }) {
         }
     };
 
-    const handleFilterPress = () => {
-        setFilterVisible(!isFilterVisible);
-    };
-
     const handleIconPress = () => {
         navigation.navigate("Info");
     };
@@ -103,9 +96,6 @@ export default function MenuPrincipal({ navigation }) {
                             <Text style={styles.buttonText}>Llista</Text>
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={handleFilterPress} style={styles.filterButton}>
-                        <AntDesign name="filter" size={24} color="black" />
-                    </TouchableOpacity>
                 </View>
 
                 {isMapVisible && (
@@ -145,14 +135,6 @@ export default function MenuPrincipal({ navigation }) {
                             ))}
                         </MapView>
                     </View>
-                )}
-
-                {isFilterVisible && (
-                    <Filter 
-                        selectedZones={selectedZones} 
-                        setSelectedZones={setSelectedZones} 
-                        onClose={() => setFilterVisible(false)} 
-                    />
                 )}
             </View>
 
@@ -237,14 +219,6 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 16,
         color: 'black',
-    },
-    filterButton: {
-        paddingHorizontal: 10,
-        marginLeft: 10,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
     },
     roundedMapContainer: {
         width: '95%',
