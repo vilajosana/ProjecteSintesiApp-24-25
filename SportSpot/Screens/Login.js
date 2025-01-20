@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { auth } from '../utils/firebaseConfig'; // Importa el teu fitxer de configuració de Firebase
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Funció per iniciar sessió amb un usuari
+import { auth } from '../utils/firebaseConfig'; 
+import { signInWithEmailAndPassword } from 'firebase/auth'; 
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedButton, setSelectedButton] = useState('signIn'); // Sign In seleccionat per defecte
+  const [selectedButton, setSelectedButton] = useState('signIn'); 
 
   const handleLogin = () => {
     if (email === '' || password === '') {
@@ -18,7 +18,7 @@ const Login = ({ navigation }) => {
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
         Alert.alert('Sessió Iniciada', 'Benvingut!');
-        navigation.navigate('MenuPrincipal'); // Redirigeix a la pàgina principal després de fer login
+        navigation.navigate('MenuPrincipal'); 
       })
       .catch((error) => {
         Alert.alert('Error', 'Credencials incorrectes');
@@ -38,25 +38,14 @@ const Login = ({ navigation }) => {
         <View style={styles.buttonRectangle}>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[
-                styles.button, 
-                selectedButton === 'signIn' && styles.buttonSelected,
-                selectedButton !== null && selectedButton !== 'signIn' && styles.buttonTransparent
-              ]}
-              onPress={() => {
-                setSelectedButton('signIn');
-                navigation.navigate('Login');
-              }}
+              style={[styles.button, selectedButton === 'signIn' && styles.buttonSelected]}
+              onPress={() => setSelectedButton('signIn')}
             >
               <Text style={styles.buttonText}>Sign in</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.button, 
-                selectedButton === 'signUp' && styles.buttonSelected,
-                selectedButton !== null && selectedButton !== 'signUp' && styles.buttonTransparent
-              ]}
-              onPress={() => navigation.navigate('Register')} // Redirigir a Register
+              style={[styles.button, selectedButton === 'signUp' && styles.buttonSelected]}
+              onPress={() => navigation.navigate('Register')}
             >
               <Text style={styles.buttonText}>Sign up</Text>
             </TouchableOpacity>
@@ -89,9 +78,9 @@ const Login = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center', // Centrat verticalment
-    alignItems: 'center', // Centrat horitzontalment
-    backgroundColor: '#F5F5F5', // Fons gris clar
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
   },
   header: {
     width: '100%',
@@ -107,7 +96,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     marginBottom: 20,
-    width: '80%', // Amplada del formulari
+    width: '80%',
     minHeight: 270,
     alignItems: 'center',
     justifyContent: 'center',
@@ -134,28 +123,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonSelected: {
-    backgroundColor: '#FF6347', // Vermell més intens
-  },
-  buttonTransparent: {
-    opacity: 0.3, // Transparent per als botons no seleccionats
+    backgroundColor: '#FF6347',
   },
   buttonText: {
     fontSize: 16,
-    color: 'black', // Text en negre
+    color: 'black',
   },
   input: {
     height: 50,
-    borderColor: '#D1D1D1', // Borde gris suau
+    borderColor: '#D1D1D1',
     borderWidth: 1,
-    borderRadius: 10, // Bordes arrodonits
+    borderRadius: 10,
     marginBottom: 15,
     paddingLeft: 15,
-    backgroundColor: '#F9F9F9', // Fons gris clar als inputs
+    backgroundColor: '#F9F9F9',
     fontSize: 16,
-    width: '100%', // Assegura que el camp ocupi tot l'espai disponible
+    width: '100%',
   },
   loginButton: {
-    backgroundColor: '#F08080', // Color de botó rosat
+    backgroundColor: '#F08080',
     padding: 10,
     borderRadius: 10,
     width: '70%',
@@ -163,11 +149,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   loginButtonText: {
-    color: 'black', // Text en negre
+    color: 'black',
     fontSize: 16,
   },
   registerText: {
-    color: '#F08080', // Text de registre en rosat
+    color: '#F08080',
     textAlign: 'center',
     marginTop: 15,
     fontSize: 16,
