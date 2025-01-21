@@ -124,7 +124,6 @@ export default function MenuPrincipal({ navigation }) {
                                             <Ionicons name="location-outline" size={30} color="black" />
                                             <Text style={styles.calloutTitle}>{location.name}</Text>
                                             <Text style={styles.calloutDescription}>{location.description}</Text>
-                                            {/* Categoria dins del Text */}
                                             <Text style={styles.calloutDescription}>{location.category}</Text>
                                             <View style={styles.ratingContainer}>
                                                 <Text>⭐ {location.rating}</Text>
