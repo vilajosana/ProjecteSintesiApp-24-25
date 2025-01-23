@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Alert } fro
 import { useNavigation } from '@react-navigation/native';
 import { firebase } from '../utils/firebaseConfig'; // Importa el teu fitxer de configuració de Firebase
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore'; // Importa Firestore
 
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -27,17 +28,28 @@ const Register = ({ navigation }) => {
     }
 
     const auth = getAuth();
+    const db = getFirestore(); // Inicialitza Firestore
 
     createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        // Usuari registrat correctament, inicia sessió automàticament
-        Alert.alert('Welcome!', 'S\'ha creat la compte correctament.');
-        navigation.navigate('MenuPrincipal'); // Redirigeix a la pàgina principal (Home)
+      .then(async (userCredential) => {
+        // Usuari registrat correctament
+        const user = userCredential.user;
+        
+        // Afegeix el document a la col·lecció Users amb el userId com a clau
+        try {
+          await setDoc(doc(db, 'Users', user.uid), {
+            email: user.email, // Pots afegir altres dades que vulguis
+            createdAt: new Date(), // Data de creació del compte
+          });
+          Alert.alert('Welcome!', 'S\'ha creat la compte correctament.');
+          navigation.navigate('MenuPrincipal'); // Redirigeix a la pàgina principal (Home)
+        } catch (error) {
+          Alert.alert('Error', 'No s\'ha pogut guardar la informació a la base de dades.');
+        }
       })
       .catch((error) => {
         if (error.code === 'auth/email-already-in-use') {
-          // Si l'usuari ja existeix, mostra un missatge
-          Alert.alert('Usuari existent', 'Aquest correu ja s\ha fet servir');
+          Alert.alert('Usuari existent', 'Aquest correu ja s\'ha fet servir');
         } else {
           Alert.alert('Error', 'Correu invàlid');
         }
