@@ -128,7 +128,7 @@ export default function MenuPrincipal({ navigation }) {
                                             <View style={styles.ratingContainer}>
                                                 <Text>⭐ {location.rating}</Text>
                                             </View>
-                                        </View>
+                                        </View> 
                                     </Callout>
                                 </Marker>
                             ))}

@@ -1,36 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
-import { db } from '../utils/firebaseConfig';  // Importa la configuració de Firebase
-import { collection, getDocs, query, where, getDoc, doc } from 'firebase/firestore';  // Importa els mètodes necessaris de Firestore
+import { getAuth } from 'firebase/auth'; // Importem Firebase Auth
+import { db } from '../utils/firebaseConfig'; // Configuració de Firebase
+import { doc, getDoc, collection } from 'firebase/firestore'; // Mètodes necessaris de Firestore
 import FSection from '../components/FSection';
-import { Ionicons } from '@expo/vector-icons'; // Asegúrate de tener instalado @expo/vector-icons
+import { Ionicons } from '@expo/vector-icons';
 
-const Preferits = ({ navigation, userId }) => {
-  const [favorits, setFavorits] = useState([]);  // Afegim un estat per emmagatzemar els favorits
-  const [loading, setLoading] = useState(true);  // Afegim estat per gestionar la càrrega de dades
+const Preferits = ({ navigation }) => {
+  const [uid, setUid] = useState(null); // Estat per guardar el UID
+  const [favorits, setFavorits] = useState([]); // Estat per guardar els favorits
+  const [loading, setLoading] = useState(true); // Estat per gestionar el loading
 
-  // Carregar favorits des de Firestore
-  const carregarFavorits = async () => {
+  // Obtenim el UID de Firebase Authentication
+  useEffect(() => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      console.log('Usuari connectat amb UID:', user.uid);
+      setUid(user.uid); // Guardem el UID
+      carregarFavorits(user.uid); // Carreguem els favorits
+    } else {
+      console.log('No hi ha cap usuari connectat.');
+      Alert.alert('Error', 'No hi ha cap usuari connectat.');
+      setLoading(false);
+    }
+  }, []);
+
+  // Funció per carregar els favorits des de Firestore
+  const carregarFavorits = async (uid) => {
     try {
-      // Comprovem que tenim un userId
-      if (!userId) {
-        Alert.alert('Error', 'No es pot carregar les ubicacions favorites sense un ID d\'usuari vàlid.');
+      console.log('Carregant favorits per UID:', uid);
+
+      if (!uid) {
+        console.error('El UID no és vàlid.');
         return;
       }
 
-      // Consulta per obtenir l'usuari amb un userId determinat
-      const userRef = doc(db, 'Users', userId); // Referència a l'usuari actual
+      const userRef = doc(db, 'Users', uid); // Referència a l'usuari a Firestore
       const userSnapshot = await getDoc(userRef);
-      
+
       if (userSnapshot.exists()) {
         const userData = userSnapshot.data();
-        const favoriteIds = userData.favorites || [];  // Obtenim els IDs dels favorits
+        const favoriteIds = userData.favorites || []; // Obtenim els IDs dels favorits
 
         if (favoriteIds.length > 0) {
-          // Consulta per obtenir les ubicacions favorites basades en els IDs
-          const locationsRef = collection(db, 'Locations');
-          
-          // Si tens una gran quantitat de favorites, utilitza el mètode batch (un grup de consultes) o fes diverses consultes
           const locationPromises = favoriteIds.map(async (favId) => {
             const locationRef = doc(db, 'Locations', favId);
             const locationSnapshot = await getDoc(locationRef);
@@ -39,44 +53,37 @@ const Preferits = ({ navigation, userId }) => {
             }
           });
 
-          // Esperar totes les ubicacions favorites
           const locationsArray = await Promise.all(locationPromises);
-
-          // Actualitzem l'estat amb les ubicacions favorites
-          setFavorits(locationsArray.filter(location => location !== undefined));
+          setFavorits(locationsArray.filter((location) => location !== undefined)); // Eliminem els valors undefined
+          console.log('Favorits carregats correctament:', locationsArray);
         } else {
           console.log('No hi ha ubicacions favorites.');
-          setFavorits([]);  // Si no hi ha favorites, netegem el llistat
+          setFavorits([]); // Si no hi ha favorites, netegem el llistat
         }
       } else {
+        console.error('Usuari no trobat amb UID:', uid);
         Alert.alert('Error', 'Usuari no trobat.');
       }
-
-      setLoading(false);  // Finalitza el loading
     } catch (error) {
-      console.error('Error carregant els favorits: ', error);
-      setLoading(false); // Finalitza el loading en cas d'error
+      console.error('Error carregant favorits:', error);
+    } finally {
+      setLoading(false); // Finalitzem el loading
     }
   };
 
-  // Utilitzem useEffect per carregar els favorits en carregar el component
-  useEffect(() => {
-    if (userId) {
-      carregarFavorits();  // Cridem la funció per carregar els favorits
-    }
-  }, [userId]);
-
+  // Funció per gestionar les accions dels botons
   const handlePress = (id) => {
-    console.log("Han clicat al botó " + id);
+    console.log('Han clicat al botó ' + id);
     if (id === 1) {
-      navigation.navigate("MenuPrincipal");
+      navigation.navigate('MenuPrincipal');
     } else if (id === 3) {
-      navigation.navigate("AfegirNovaUbicacio");
+      navigation.navigate('AfegirNovaUbicacio');
     } else if (id === 4) {
-      navigation.navigate("Usuari");
+      navigation.navigate('Usuari');
     }
   };
 
+  // Render del component
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -90,17 +97,17 @@ const Preferits = ({ navigation, userId }) => {
           <Text style={styles.labelText}>Preferits</Text>
         </TouchableOpacity>
       </View>
-      
-      {/* Mostrar loading mentre es carrega */}
+
+      {/* Mostrar loading mentre es carreguen els favorits */}
       {loading ? (
         <Text>Carregant favorits...</Text>
       ) : (
         <FlatList
-          data={favorits}  // Carreguem els favorits a la FlatList
-          keyExtractor={(item) => item.id}  // Utilitzem el id de la ubicació com a key
+          data={favorits} // Carreguem els favorits a la FlatList
+          keyExtractor={(item) => item.id} // Utilitzem el ID de la ubicació com a key
           renderItem={({ item }) => (
             <View style={styles.favItem}>
-              <Text>{item.name}</Text>  {/* Mostrar un atribut de l'objecte favorit */}
+              <Text>{item.name}</Text> {/* Mostrar un atribut de l'objecte favorit */}
             </View>
           )}
         />
