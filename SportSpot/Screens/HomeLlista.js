@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import FSection from '../components/FSection';
 import Toast from 'react-native-toast-message'; // Importa Toast directament
@@ -20,28 +20,43 @@ export default function HomeLlista({ navigation }) {
             const db = getFirestore();
             const locationsCollection = collection(db, 'Locations');
             const locationSnapshot = await getDocs(locationsCollection);
-            const locationList = locationSnapshot.docs.map((doc) => {
+            const locationList = locationSnapshot.docs.map(async (doc) => {
                 const data = doc.data();
                 const location = data.location; // Camp `location` amb subcamps `latitude` i `longitude`
-
+    
                 // Comprovar si `location` és vàlid
                 if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
                     console.warn(`Ubicació sense coordenades vàlides: ${doc.id}`);
                     return null;
                 }
-
+    
+                let photoURL = null;
+                if (data.photo) {
+                    // Obtenir la URL de la imatge des de Firebase Storage
+                    const storageRef = firebase.storage().ref(data.photo);  // Assuming `data.photo` is the storage path
+                    try {
+                        photoURL = await storageRef.getDownloadURL();
+                    } catch (error) {
+                        console.error("Error obtenint la URL de la imatge:", error);
+                    }
+                }
+    
                 return {
                     id: doc.id,
                     name: data.name || 'Sense nom',
                     description: data.description || 'Sense descripció',
+                    photo: photoURL,  // Afegir la URL de la imatge
                     rating: data.rating || 0,
                     latitude: location.latitude, // Latitud
                     longitude: location.longitude, // Longitud
                     category: data.category || 'Sense categoria',  // Afegir categoria
                     favorite: data.favorite || false,
                 };
-            }).filter((location) => location !== null); // Elimina ubicacions no vàlides
-            setLocations(locationList);
+            });
+    
+            // Esperar que totes les promeses es resolguin abans de fer setLocations
+            const resolvedLocations = await Promise.all(locationList);
+            setLocations(resolvedLocations.filter((location) => location !== null));
         } catch (error) {
             console.error('Error carregant les ubicacions:', error);
             Alert.alert('Error', 'No s\'han pogut carregar les ubicacions');
@@ -321,6 +336,12 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         margin: 10,
         padding: 10,
+    },
+    itemImage: {
+        width: 100,  // L'amplada de la imatge
+        height: 100, // Alçada de la imatge
+        borderRadius: 10, // Opcional, per redondejar les vores
+        marginRight: 10,
     },
     header: {
         flexDirection: 'row',
