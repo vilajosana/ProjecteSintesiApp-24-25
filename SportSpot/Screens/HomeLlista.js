@@ -245,7 +245,7 @@ export default function HomeLlista({ navigation }) {
             <TouchableOpacity
                 key={index}
                 onPress={() => handleStarPress(id, index)}
-                style={styles.starButton}
+                style={styles.starButton} // Puedes eliminar esta línea si no quieres ningún estilo
             >
                 <Ionicons
                     name="star-outline"
@@ -270,25 +270,23 @@ export default function HomeLlista({ navigation }) {
 
     const renderItem = ({ item }) => (
         <View style={styles.item}>
-            <Ionicons name="location-outline" size={24} color="black" style={styles.mapPinIcon} />
             <View style={styles.itemContent}>
-                <View style={styles.itemTextContainer}>
+                <View style={styles.itemHeader}>
                     <TouchableOpacity onPress={() => navigation.navigate('InformacionFicha', { locationId: item.id })}>
                         <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
-                    <Text style={styles.itemcaregory}>{item.category}</Text> {/* Mostra la categoria */}
+                    {renderHeart(item.favorite, item.id)}  {/* Corazón al lado del nombre */}
                 </View>
-                <View style={styles.itemInfo}>
-                    <View style={styles.starsContainer}>
-                        {renderStars(item.rating, item.id)}
-                    </View>
-                    {renderHeart(item.favorite, item.id)}  {/* Afegir el cor */}
-                    <TouchableOpacity onPress={() => handleDeletePress(item.id)}>
-                        <Ionicons name="ellipsis-vertical" size={24} color="black" />
-                    </TouchableOpacity>
+                <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
+                <Text style={styles.itemCategory}>{item.category || 'Sense categoria'}</Text> {/* Categoría debajo de la descripción */}
+                <View style={styles.starsContainer}>
+                    {renderStars(item.rating, item.id)}
                 </View>
+                <Image source={{ uri: item.photo }} style={styles.itemImage} />
             </View>
+            <TouchableOpacity onPress={() => handleDeletePress(item.id)}>
+                <Ionicons name="ellipsis-vertical" size={24} color="black" />
+            </TouchableOpacity>
         </View>
     );
 
@@ -341,7 +339,7 @@ const styles = StyleSheet.create({
         width: 100,  // L'amplada de la imatge
         height: 100, // Alçada de la imatge
         borderRadius: 10, // Opcional, per redondejar les vores
-        marginRight: 10,
+        marginTop: 10, // Añadido para separar la imagen de los elementos anteriores
     },
     header: {
         flexDirection: 'row',
@@ -392,9 +390,9 @@ const styles = StyleSheet.create({
     },
     itemContent: {
         flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flexDirection: 'column', // Cambiado a 'column' para apilar los elementos verticalmente
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
     },
     itemTextContainer: {
         flex: 1,
@@ -408,10 +406,11 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: 'gray',
     },
-    itemcaregory: {
+    itemCategory: {
         fontSize: 14,
-        fontStyle: 'italic',
-        color: 'gray',
+        fontWeight: 'bold', // Añadir esta línea para que el texto esté en negrita
+        color: 'black',
+        marginTop: 5, // Espacio entre la descripción y la categoría
     },
     itemInfo: {
         flexDirection: 'row',
@@ -422,7 +421,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     starButton: {
-        borderColor: 'black',
+        
         borderWidth: 1,
         borderRadius: 5,
         padding: 5,
