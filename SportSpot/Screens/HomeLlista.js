@@ -275,10 +275,10 @@ export default function HomeLlista({ navigation }) {
                     <TouchableOpacity onPress={() => navigation.navigate('InformacionFicha', { locationId: item.id })}>
                         <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
                     </TouchableOpacity>
-                    {renderHeart(item.favorite, item.id)}  {/* Corazón al lado del nombre */}
+                    {renderHeart(item.favorite, item.id)} 
                 </View>
                 <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
-                <Text style={styles.itemCategory}>{item.category || 'Sense categoria'}</Text> {/* Categoría debajo de la descripción */}
+                <Text style={styles.itemCategory}>{item.category || 'Sense categoria'}</Text> 
                 <View style={styles.starsContainer}>
                     {renderStars(item.rating, item.id)}
                 </View>
@@ -297,7 +297,7 @@ export default function HomeLlista({ navigation }) {
                     <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Info')}>
                         <Ionicons name="ellipsis-vertical" size={24} color="black" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Home Llista</Text>
+                    <Text style={styles.headerTitle}>Llista</Text>
                 </View>
 
                 <View style={styles.buttonArea}>
