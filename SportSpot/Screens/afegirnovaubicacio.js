@@ -17,7 +17,7 @@ export default function AfegirNovaUbicacio({ navigation }) {
   const [description, setDescription] = useState('');
   const [rating, setRating] = useState(0);
   const [location, setLocation] = useState(null);
-  const [category, setCategory] = useState(''); // Estat per emmagatzemar la categoria seleccionada
+  const [category, setCategory] = useState(''); 
   const [initialRegion, setInitialRegion] = useState(null);
   const { addLocation } = useLocationContext();
 
@@ -176,7 +176,7 @@ export default function AfegirNovaUbicacio({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Recuadre superior */}
+        {/* Recuadre superior amb el header */}
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>Informació Fitxa</Text>
         </View>
@@ -215,14 +215,17 @@ export default function AfegirNovaUbicacio({ navigation }) {
           </View>
         </View>
 
+        {/* Mapa dins d'un recuadre */}
         {initialRegion && (
-          <MapView
-            style={styles.map}
-            initialRegion={initialRegion}
-            onPress={handleMapPress}
-          >
-            {location && <Marker coordinate={location} />}
-          </MapView>
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              initialRegion={initialRegion}
+              onPress={handleMapPress}
+            >
+              {location && <Marker coordinate={location} />}
+            </MapView>
+          </View>
         )}
 
         {/* Botó per seleccionar foto */}
@@ -247,25 +250,29 @@ export default function AfegirNovaUbicacio({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* FSection a la part inferior */}
-      <FSection
-        currentSection={3}
-        onPress={(id) => console.log("Botó seleccionat:", id)}
-        navigation={navigation}
-      />
+      {/* Footer fixat a la part inferior */}
+      <View style={styles.footer}>
+        <FSection
+          currentSection={3}
+          onPress={(id) => console.log("Botó seleccionat:", id)}
+          navigation={navigation}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContainer: { flexGrow: 1, justifyContent: 'space-between' },
+  container: { flex: 1, backgroundColor: '#FFFFFF'},
+  scrollContainer: { flexGrow: 1, paddingBottom: 80 },  // Es fa una mica de marge a la part inferior
   headerContainer: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FF6347',
     padding: 15,
     alignItems: 'center',
     marginBottom: 15,
     marginTop: 40,
+    borderRadius: 10,
+    marginHorizontal: 20,
   },
   headerText: {
     fontSize: 20,
@@ -273,17 +280,46 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   formContainer: { paddingHorizontal: 20 },
-  input: { height: 45, borderColor: '#ccc', borderWidth: 1, borderRadius: 10, marginBottom: 15, paddingHorizontal: 10 },
+  input: { 
+    height: 45, 
+    borderColor: '#ccc', 
+    borderWidth: 1, 
+    borderRadius: 10, 
+    marginBottom: 15, 
+    paddingHorizontal: 10,
+    backgroundColor: '#f9f9f9' 
+  },
   starsContainer: { flexDirection: 'row', marginBottom: 20 },
   starsLabel: { fontSize: 18, marginRight: 10 },
-  map: { width: '100%', height: 300, marginBottom: 20 },
-  cameraButton: { backgroundColor: '#ff6347', padding: 15, borderRadius: 10, alignItems: 'center' },
-  addLocationButton: { backgroundColor: '#4CAF50', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
+  mapContainer: { 
+    marginBottom: 20, 
+    borderRadius: 10, 
+    overflow: 'hidden', 
+    marginHorizontal: 20, 
+    borderWidth: 1, 
+    borderColor: '#ddd' 
+  },
+  map: { width: '100%', height: 300 },
+  cameraButton: { backgroundColor: '#FF6347', padding: 15, borderRadius: 10, alignItems: 'center' },
+  addLocationButton: { backgroundColor: '#4CAF50', padding: 15, borderRadius: 10, alignItems: 'center', marginBottom: 20, marginTop: 20 },
   imageContainer: { alignItems: 'center', marginTop: 20 },
   image: { width: 150, height: 150, margin: 5 },
   categoryLabel: { fontSize: 18, marginBottom: 10 },
   categoryContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 },
   categoryButton: { backgroundColor: '#e0e0e0', padding: 10, borderRadius: 5, margin: 5 },
-  selectedCategory: { backgroundColor: '#4CAF50' },
+  selectedCategory: { backgroundColor: '#FF6347' },
   categoryButtonText: { color: '#333' },
+  addLocationButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  footer: { 
+    width: '100%',
+    backgroundColor: '#f1f1f1',  // Fons suau per al footer
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  cameraButtonText: { color: 'white', fontWeight: 'bold' },
 });

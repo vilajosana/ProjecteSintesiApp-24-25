@@ -112,7 +112,7 @@ const InformacionFicha = ({ route, navigation }) => {
             </ScrollView>
 
             {/* FSection fix a la part inferior */}
-            <View style={styles.section}>
+            <View style={styles.footer}>
                 <FSection currentSection={1} onPress={(id) => console.log(id)} navigation={navigation} />
             </View>
         </View>
@@ -196,16 +196,16 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     categoryContainer: {
-    backgroundColor: '#f9f9f9',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+        backgroundColor: '#f9f9f9',
+        padding: 15,
+        borderRadius: 10,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     ratingText: {
         fontSize: 16,
@@ -223,12 +223,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ddd',
     },
-    section: {
+    footer: {
+        backgroundColor: '#f1f1f1', // Color gris per al footer
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        paddingBottom: 10,
+        paddingVertical: 15,
+        alignItems: 'center',
         zIndex: 10,
     },
     errorText: {

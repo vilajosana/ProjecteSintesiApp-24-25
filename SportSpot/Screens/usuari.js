@@ -278,14 +278,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     footer: {
+        backgroundColor: '#f1f1f1', // Color gris per al footer
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 10,
-        backgroundColor: 'lightgrey',
-        borderTopWidth: 1,
-        borderTopColor: 'gray',
+        paddingVertical: 15,
+        alignItems: 'center',
+        zIndex: 10,
     },
     editableInput: {
         backgroundColor: '#f0f0f0',

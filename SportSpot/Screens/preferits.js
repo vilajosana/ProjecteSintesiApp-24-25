@@ -91,6 +91,7 @@ const Preferits = ({ navigation }) => {
           <Ionicons name="ellipsis-vertical" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.title}>Preferits</Text>
+        <View style={{ width: 24 }} /> 
       </View>
       <View style={styles.labelContainer}>
         <TouchableOpacity style={styles.labelButton} disabled={true}>
@@ -99,7 +100,7 @@ const Preferits = ({ navigation }) => {
       </View>
 
       {loading ? (
-        <Text style={styles.loadingText}>Carregant favorits...</Text>
+        <Text style={styles.loadingText}>Carregant preferits...</Text>
       ) : (
         <FlatList
           data={favorits} // Carreguem els favorits a la FlatList
@@ -130,6 +131,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6347',  // Taronga de color per al header
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center', // Alineació horitzontal de tots els elements
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -143,9 +145,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',  // Blanc per a la lletra
-    marginLeft: 20,
-    flex: 1,
-    textAlign: 'center',
+    textAlign: 'center',  // Centrat horitzontalment
+    flex: 1,  // Perquè es pugui centrar correctament dins del header
   },
   iconButton: {
     padding: 10,

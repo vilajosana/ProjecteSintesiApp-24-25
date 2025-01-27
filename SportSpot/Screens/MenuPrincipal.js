@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import FSection from '../components/FSection';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import * as Animatable from 'react-native-animatable';
-import { firebase } from '../utils/firebaseConfig'; // Configuració de Firebase
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 
 export default function MenuPrincipal({ navigation }) {
@@ -71,102 +69,120 @@ export default function MenuPrincipal({ navigation }) {
 
     return (
         <View style={{ flex: 1, paddingTop: 50 }}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={handleIconPress} style={styles.headerIcon}>
-                    <Ionicons name="ellipsis-vertical" size={24} color="black" />
-                </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Menú Principal</Text>
-                </View>
-            </View>
-
-            <View style={styles.mapContainer}>
-                <View style={[styles.buttonArea, { marginTop: -20 }]}>
-                    <View style={styles.buttonRectangle}>
-                        <TouchableOpacity
-                            style={[styles.button, isMapVisible && styles.buttonSelected]}
-                            onPress={() => toggleMapList('map')}
-                        >
-                            <Text style={styles.buttonText}>Mapa</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.button, !isMapVisible && styles.buttonSelected]}
-                            onPress={() => toggleMapList('list')}
-                        >
-                            <Text style={styles.buttonText}>Llista</Text>
-                        </TouchableOpacity>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={handleIconPress} style={styles.headerIcon}>
+                        <Ionicons name="ellipsis-vertical" size={24} color="white" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={styles.headerTitle}>Menú Principal</Text>
                     </View>
                 </View>
 
-                {isMapVisible && (
-                    <View style={styles.roundedMapContainer}>
-                        <MapView
-                            style={styles.map}
-                            initialRegion={{
-                                latitude: 41.722730,
-                                longitude: 1.812957,
-                                latitudeDelta: 0.0922,
-                                longitudeDelta: 0.0421,
-                            }}
-                        >
-                            {locations.map((location) => (
-                                <Marker
-                                    key={location.id}
-                                    coordinate={{
-                                        latitude: location.latitude,
-                                        longitude: location.longitude,
-                                    }}
-                                    title={location.name}
-                                    description={location.description}
-                                >
-                                    <Callout>
-                                        <View style={styles.calloutContainer}>
-                                            <Ionicons name="location-outline" size={30} color="black" />
-                                            <Text style={styles.calloutTitle}>{location.name}</Text>
-                                            <Text style={styles.calloutDescription}>{location.description}</Text>
-                                            <Text style={styles.calloutDescription}>{location.category}</Text>
-                                            <View style={styles.ratingContainer}>
-                                                <Text>⭐ {location.rating}</Text>
+                <View style={styles.mapContainer}>
+                    <View style={[styles.buttonArea, { marginTop: -20 }]}>
+                        <View style={styles.buttonRectangle}>
+                            <TouchableOpacity
+                                style={[styles.button, isMapVisible && styles.buttonSelected]}
+                                onPress={() => toggleMapList('map')}
+                            >
+                                <Text style={styles.buttonText}>Mapa</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.button, !isMapVisible && styles.buttonSelected]}
+                                onPress={() => toggleMapList('list')}
+                            >
+                                <Text style={styles.buttonText}>Llista</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {isMapVisible && (
+                        <View style={styles.roundedMapContainer}>
+                            <MapView
+                                style={styles.map}
+                                initialRegion={{
+                                    latitude: 41.722730,
+                                    longitude: 1.812957,
+                                    latitudeDelta: 0.0922,
+                                    longitudeDelta: 0.0421,
+                                }}
+                            >
+                                {locations.map((location) => (
+                                    <Marker
+                                        key={location.id}
+                                        coordinate={{
+                                            latitude: location.latitude,
+                                            longitude: location.longitude,
+                                        }}
+                                        title={location.name}
+                                        description={location.description}
+                                    >
+                                        <Callout>
+                                            <View style={styles.calloutContainer}>
+                                                <Ionicons name="location-outline" size={30} color="black" />
+                                                <Text style={styles.calloutTitle}>{location.name}</Text>
+                                                <Text style={styles.calloutDescription}>{location.description}</Text>
+                                                <Text style={styles.calloutDescription}>{location.category}</Text>
+                                                <View style={styles.ratingContainer}>
+                                                    <Text>⭐ {location.rating}</Text>
+                                                </View>
                                             </View>
-                                        </View> 
-                                    </Callout>
-                                </Marker>
-                            ))}
-                        </MapView>
-                    </View>
-                )}
-            </View>
+                                        </Callout>
+                                    </Marker>
+                                ))}
+                            </MapView>
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
 
-            <View style={styles.space} />
-            <View style={styles.section}>
-                <FSection currentSection={1} onPress={handlePress} navigation={navigation} />
+            <View style={styles.footer}>
+                <FSection
+                    currentSection={1}
+                    onPress={handlePress}
+                    navigation={navigation}
+                />
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+        paddingBottom: 80, 
+        backgroundColor: '#FFFFFF',
+    },
     header: {
-        backgroundColor: '#f7f7f8', 
+        backgroundColor: '#FF6347', // Color taronja per tota la capçalera
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+        justifyContent: 'center',
+        paddingVertical: 20, // Fes que la capçalera sigui més alta per un millor aspecte
+        paddingHorizontal: 15, // Afegim una mica de padding als costats per a més espai
         borderBottomWidth: 1,
         borderBottomColor: '#e6e6e6',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     headerTitleContainer: {
         flex: 1,
         alignItems: 'center',
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
+        color: 'white', // El text serà blanc per destacar sobre el fons taronja
+        textAlign: 'center',
     },
     headerIcon: {
         padding: 5,
+        position: 'absolute',
+        left: 20, // Col·loca la icona a l'esquerra
     },
     mapContainer: {
         flex: 7,
@@ -234,10 +250,15 @@ const styles = StyleSheet.create({
     ratingContainer: {
         marginBottom: 5,
     },
-    space: {
-        height: 20,
-    },
-    section: {
-        flex: 1,
+    footer: {
+        width: '100%',
+        backgroundColor: '#f1f1f1',  // Fons suau per al footer
+        paddingVertical: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#e0e0e0',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
     },
 });
