@@ -1,206 +1,211 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
-import { Ionicons } from 'react-native-vector-icons';
-import { firebase } from '../utils/firebaseConfig'; 
-import { getFirestore, collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import Toast from 'react-native-toast-message'; 
-import FSection from '../components/FSection'; // Importar el component FSection
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { getAuth } from 'firebase/auth'; // Importem Firebase Auth
+import { db } from '../utils/firebaseConfig'; // Configuració de Firebase
+import { doc, getDoc, collection } from 'firebase/firestore'; // Mètodes necessaris de Firestore
+import FSection from '../components/FSection';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function Preferits({ navigation }) {
-    const [locations, setLocations] = useState([]);
-    const [user, setUser] = useState(null);
-    const [activeSection, setActiveSection] = useState(2); // Canviar a 2 per marcar la secció Preferits com a activa per defecte
+const Preferits = ({ navigation }) => {
+  const [uid, setUid] = useState(null); // Estat per guardar el UID
+  const [favorits, setFavorits] = useState([]); // Estat per guardar els favorits
+  const [loading, setLoading] = useState(true); // Estat per gestionar el loading
 
+  // Obtenim el UID de Firebase Authentication
+  useEffect(() => {
     const auth = getAuth();
+    const user = auth.currentUser;
 
-    const loadLocations = async () => {
-        try {
-            const db = getFirestore();
-            const locationsCollection = collection(db, 'Locations');
-            const locationSnapshot = await getDocs(locationsCollection);
-            const locationList = locationSnapshot.docs.map(async (doc) => {
-                const data = doc.data();
-                const location = data.location;
+    if (user) {
+      console.log('Usuari connectat amb UID:', user.uid);
+      setUid(user.uid); // Guardem el UID
+      carregarFavorits(user.uid); // Carreguem els favorits
+    } else {
+      console.log('No hi ha cap usuari connectat.');
+      Alert.alert('Error', 'No hi ha cap usuari connectat.');
+      setLoading(false);
+    }
+  }, []);
 
-                if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
-                    console.warn(`Ubicació sense coordenades vàlides: ${doc.id}`);
-                    return null;
-                }
+  // Funció per carregar els favorits des de Firestore
+  const carregarFavorits = async (uid) => {
+    try {
+      console.log('Carregant favorits per UID:', uid);
 
-                let photoURL = null;
-                if (data.photo) {
-                    const storageRef = firebase.storage().ref(data.photo);  
-                    try {
-                        photoURL = await storageRef.getDownloadURL();
-                    } catch (error) {
-                        console.error("Error obtenint la URL de la imatge:", error);
-                    }
-                }
+      if (!uid) {
+        console.error('El UID no és vàlid.');
+        return;
+      }
 
-                return {
-                    id: doc.id,
-                    name: data.name || 'Sense nom',
-                    description: data.description || 'Sense descripció',
-                    photo: photoURL,  
-                    rating: data.rating || 0,
-                    latitude: location.latitude, 
-                    longitude: location.longitude, 
-                    category: data.category || 'Sense categoria', 
-                    favorite: data.favorite || false,
-                };
-            });
+      const userRef = doc(db, 'Users', uid); // Referència a l'usuari a Firestore
+      const userSnapshot = await getDoc(userRef);
 
-            const resolvedLocations = await Promise.all(locationList);
-            setLocations(resolvedLocations.filter((location) => location !== null));
-        } catch (error) {
-            console.error('Error carregant les ubicacions:', error);
-            Alert.alert('Error', 'No s\'han pogut carregar les ubicacions');
+      if (userSnapshot.exists()) {
+        const userData = userSnapshot.data();
+        const favoriteIds = userData.favorites || []; // Obtenim els IDs dels favorits
+
+        if (favoriteIds.length > 0) {
+          const locationPromises = favoriteIds.map(async (favId) => {
+            const locationRef = doc(db, 'Locations', favId);
+            const locationSnapshot = await getDoc(locationRef);
+            if (locationSnapshot.exists()) {
+              return { id: locationSnapshot.id, ...locationSnapshot.data() };
+            }
+          });
+
+          const locationsArray = await Promise.all(locationPromises);
+          setFavorits(locationsArray.filter((location) => location !== undefined)); // Eliminem els valors undefined
+          console.log('Favorits carregats correctament:', locationsArray);
+        } else {
+          console.log('No hi ha ubicacions favorites.');
+          setFavorits([]); // Si no hi ha favorites, netegem el llistat
         }
-    };
+      } else {
+        console.error('Usuari no trobat amb UID:', uid);
+        Alert.alert('Error', 'Usuari no trobat.');
+      }
+    } catch (error) {
+      console.error('Error carregant favorits:', error);
+    } finally {
+      setLoading(false); // Finalitzem el loading
+    }
+  };
 
-    const loadUser = async () => {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-            setUser(currentUser);
-        }
-    };
+  // Funció per gestionar les accions dels botons
+  const handlePress = (id) => {
+    console.log('Han clicat al botó ' + id);
+    if (id === 1) {
+      navigation.navigate('MenuPrincipal');
+    } else if (id === 3) {
+      navigation.navigate('AfegirNovaUbicacio');
+    } else if (id === 4) {
+      navigation.navigate('Usuari');
+    }
+  };
 
-    useEffect(() => {
-        loadLocations(); 
-        loadUser(); 
-    }, []);
+  // Render del component
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.iconButton}>
+          <Ionicons name="ellipsis-vertical" size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Preferits</Text>
+      </View>
+      <View style={styles.labelContainer}>
+        <TouchableOpacity style={styles.labelButton} disabled={true}>
+          <Text style={styles.labelText}>Preferits</Text>
+        </TouchableOpacity>
+      </View>
 
-    const renderItem = ({ item }) => (
-        <View style={styles.item}>
-            <View style={styles.itemContent}>
-                <View style={styles.itemHeader}>
-                    <TouchableOpacity onPress={() => navigation.navigate('InformacionFicha', { locationId: item.id })}>
-                        <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
-                    </TouchableOpacity>
-                </View>
-                <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
-                <Text style={styles.itemCategory}>{item.category || 'Sense categoria'}</Text> 
+      {loading ? (
+        <Text style={styles.loadingText}>Carregant favorits...</Text>
+      ) : (
+        <FlatList
+          data={favorits} // Carreguem els favorits a la FlatList
+          keyExtractor={(item) => item.id} // Utilitzem el ID de la ubicació com a key
+          renderItem={({ item }) => (
+            <View style={styles.favItem}>
+              <Text style={styles.favItemText}>{item.name}</Text> 
             </View>
-        </View>
-    );
+          )}
+        />
+      )}
 
-    // Funció per actualitzar la secció activa
-    const handleSectionChange = (sectionIndex) => {
-        setActiveSection(sectionIndex); 
-    };
-
-    return (
-        <View style={{ flex: 1, marginTop: 50 }}>
-            {/* Header idèntic al de HomeLlista */}
-            <View style={styles.headerContainer}>
-                <View style={styles.header}>
-                    <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Info')}>
-                        <Ionicons name="ellipsis-vertical" size={24} color="black" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Preferits</Text>
-                </View>
-            </View>
-
-            <FlatList
-                data={locations}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-            />
-
-            {/* Afegir el component FSection a la part inferior */}
-            <View style={styles.footerContainer}>
-                <FSection 
-                    currentSection={activeSection} // Passar la secció activa com a prop
-                    onPress={handleSectionChange}  // Actualitzar la secció activa quan es prem un botó
-                    navigation={navigation} 
-                />
-            </View>
-
-            <Toast />
-        </View>
-    );
-}
+      <View style={styles.footer}>
+        <FSection currentSection={2} onPress={handlePress} navigation={navigation} />
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-    headerContainer: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        margin: 10,
-        padding: 10,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    headerTitle: {
-        fontSize: 24,
-        color: 'black',
-        textAlign: 'center',
-        flex: 1,
-    },
-    headerIcon: {
-        padding: 10,
-    },
-    buttonArea: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    button: {
-        backgroundColor: 'transparent',
-        borderRadius: 10,
-        padding: 10,
-        marginHorizontal: 5,
-        width: '40%',
-        alignItems: 'center',
-    },
-    buttonSelected: {
-        backgroundColor: '#FF6347',  // Taronja per a la secció activa
-    },
-    buttonText: {
-        fontSize: 16,
-        color: 'black',
-    },
-    listContainer: {
-        paddingHorizontal: 25,
-    },
-    item: {
-        backgroundColor: 'lightgrey',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
-    },
-    itemContent: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
-    },
-    itemTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: 'black',
-    },
-    itemDescription: {
-        fontSize: 14,
-        color: 'gray',
-    },
-    itemCategory: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: 'black',
-        marginTop: 5,
-    },
-    footerContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: 10,
-        backgroundColor: 'lightgrey',
-        borderTopWidth: 1,
-        borderTopColor: 'gray',
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    paddingTop: 50,
+    paddingBottom: 20,
+    backgroundColor: '#FF6347',  // Taronga de color per al header
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',  // Blanc per a la lletra
+    marginLeft: 20,
+    flex: 1,
+    textAlign: 'center',
+  },
+  iconButton: {
+    padding: 10,
+  },
+  labelContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  labelButton: {
+    backgroundColor: '#FF6347',  // Mantenim la tonalitat taronja
+    paddingVertical: 15,
+    paddingHorizontal: 100,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  labelText: {
+    fontSize: 18,
+    color: '#fff',  // Text blanc per a contrastar amb el fons taronja
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    textAlign: 'center',
+    color: '#888',  // Text gris per a mostrar l'estat de càrrega
+    marginTop: 20,
+  },
+  favItem: {
+    padding: 15,
+    backgroundColor: '#f8f8f8',  // Fons suau per a cada item
+    marginBottom: 10,
+    borderRadius: 8,
+    borderLeftWidth: 5,
+    borderLeftColor: '#FF6347',  // Vora esquerra en color taronja
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  favItemText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',  // Text fosc per una millor llegibilitat
+  },
+  footer: {
+    width: '100%',
+    backgroundColor: '#f1f1f1',  // Fons suau per al footer
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
 });
+
+export default Preferits;
