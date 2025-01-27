@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
-import FSection from '../components/FSection';
-import Toast from 'react-native-toast-message'; // Importa Toast directament
-import { firebase } from '../utils/firebaseConfig'; // Importa la configuració de Firebase
+import FSection from '../components/FSection';  // import your FSection component
+import Toast from 'react-native-toast-message';
+import { firebase } from '../utils/firebaseConfig';
 import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default function HomeLlista({ navigation }) {
     const [locations, setLocations] = useState([]);
-    const [currentSection, setCurrentSection] = useState(1); // Secció actual
-    const [user, setUser] = useState(null); // Emmagatzema l'usuari actual
+    const [currentSection, setCurrentSection] = useState(1);
+    const [user, setUser] = useState(null);
 
     const auth = getAuth();
 
-    // Funció per carregar les ubicacions des de Firebase
     const loadLocations = async () => {
         try {
             const db = getFirestore();
@@ -22,39 +21,35 @@ export default function HomeLlista({ navigation }) {
             const locationSnapshot = await getDocs(locationsCollection);
             const locationList = locationSnapshot.docs.map(async (doc) => {
                 const data = doc.data();
-                const location = data.location; // Camp `location` amb subcamps `latitude` i `longitude`
-    
-                // Comprovar si `location` és vàlid
+                const location = data.location;
                 if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
                     console.warn(`Ubicació sense coordenades vàlides: ${doc.id}`);
                     return null;
                 }
-    
+
                 let photoURL = null;
                 if (data.photo) {
-                    // Obtenir la URL de la imatge des de Firebase Storage
-                    const storageRef = firebase.storage().ref(data.photo);  // Assuming `data.photo` is the storage path
+                    const storageRef = firebase.storage().ref(data.photo);
                     try {
                         photoURL = await storageRef.getDownloadURL();
                     } catch (error) {
                         console.error("Error obtenint la URL de la imatge:", error);
                     }
                 }
-    
+
                 return {
                     id: doc.id,
                     name: data.name || 'Sense nom',
                     description: data.description || 'Sense descripció',
-                    photo: photoURL,  // Afegir la URL de la imatge
+                    photo: photoURL,
                     rating: data.rating || 0,
-                    latitude: location.latitude, // Latitud
-                    longitude: location.longitude, // Longitud
-                    category: data.category || 'Sense categoria',  // Afegir categoria
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    category: data.category || 'Sense categoria',
                     favorite: data.favorite || false,
                 };
             });
-    
-            // Esperar que totes les promeses es resolguin abans de fer setLocations
+
             const resolvedLocations = await Promise.all(locationList);
             setLocations(resolvedLocations.filter((location) => location !== null));
         } catch (error) {
@@ -64,11 +59,10 @@ export default function HomeLlista({ navigation }) {
     };
 
     const handleSectionChange = (id) => {
-        setCurrentSection(id);  // Actualitza la secció actual
+        setCurrentSection(id);
     };
 
     const handlePress = (id) => {
-        // Realitzar la navegació segons el botó premsat
         switch (id) {
             case 1:
                 navigation.navigate("MenuPrincipal");
@@ -87,7 +81,6 @@ export default function HomeLlista({ navigation }) {
         }
     };
 
-    // Funció per carregar els preferits de l'usuari
     const loadUserFavorites = async (userId) => {
         const db = getFirestore();
         const userRef = doc(db, 'Users', userId);
@@ -96,8 +89,6 @@ export default function HomeLlista({ navigation }) {
             if (userSnapshot.exists()) {
                 const userData = userSnapshot.data();
                 const favoriteLocations = userData.favorites || [];
-
-                // Actualitza la visibilitat dels favorits en les ubicacions
                 setLocations((prevLocations) =>
                     prevLocations.map((item) => ({
                         ...item,
@@ -110,21 +101,19 @@ export default function HomeLlista({ navigation }) {
         }
     };
 
-    // Funció per obtenir l'usuari actual
     const loadUser = async () => {
         const currentUser = auth.currentUser;
         if (currentUser) {
             setUser(currentUser);
-            loadUserFavorites(currentUser.uid); // Carregar els preferits de l'usuari
+            loadUserFavorites(currentUser.uid);
         }
     };
 
     useEffect(() => {
-        loadLocations(); // Carregar les ubicacions quan es carrega el component
-        loadUser(); // Carregar l'usuari actual
+        loadLocations();
+        loadUser();
     }, []);
 
-    // Funció per actualitzar la valoració de la ubicació a Firestore
     const updateRatingInFirestore = async (id, rating) => {
         const db = getFirestore();
         const locationRef = doc(db, 'Locations', id);
@@ -135,26 +124,18 @@ export default function HomeLlista({ navigation }) {
         }
     };
 
-    // Funció per eliminar una ubicació de Firebase
     const deleteLocation = async (id) => {
         const db = getFirestore();
         const locationRef = doc(db, 'Locations', id);
         try {
-            await deleteDoc(locationRef); // Eliminar el document de la ubicació
-            setLocations((prevLocations) => prevLocations.filter((location) => location.id !== id)); // Actualitzar la llista de ubicacions
-            Toast.show({
-                type: 'success',
-                position: 'bottom',
-                text1: 'Ubicació eliminada!',
-                visibilityTime: 1500,
-            });
+            await deleteDoc(locationRef);
+            setLocations((prevLocations) => prevLocations.filter((location) => location.id !== id));
         } catch (error) {
             console.error('Error eliminant la ubicació:', error);
             Alert.alert('Error', 'No s\'ha pogut eliminar les ubicacions');
         }
     };
 
-    // Funció per mostrar l'alerta de confirmació d'eliminació
     const handleDeletePress = (id) => {
         Alert.alert(
             'Confirmar Eliminació',
@@ -173,44 +154,29 @@ export default function HomeLlista({ navigation }) {
         );
     };
 
-    // Funció per actualitzar els preferits de l'usuari a Firestore
     const updateFavoritesInFirestore = async (locationId) => {
         const db = getFirestore();
-        const userRef = doc(db, 'Users', user.uid); // Referència a l'usuari actual
+        const userRef = doc(db, 'Users', user.uid);
 
         try {
-            // Obtenir el document de l'usuari
             const userSnapshot = await getDoc(userRef);
             if (userSnapshot.exists()) {
                 const userData = userSnapshot.data();
                 let updatedFavorites;
 
                 if (userData.favorites && userData.favorites.includes(locationId)) {
-                    // Si la ubicació ja és als preferits, la traiem
                     updatedFavorites = userData.favorites.filter((id) => id !== locationId);
                 } else {
-                    // Si la ubicació no és als preferits, la afegim
                     updatedFavorites = [...(userData.favorites || []), locationId];
                 }
 
-                // Actualitzar els preferits de l'usuari
                 await updateDoc(userRef, { favorites: updatedFavorites });
 
-                // Actualitzar la visibilitat del cor (favorit) a la llista de locations
                 setLocations((prevLocations) =>
                     prevLocations.map((item) =>
                         item.id === locationId ? { ...item, favorite: !item.favorite } : item
                     )
                 );
-
-                Toast.show({
-                    type: 'success',
-                    position: 'bottom',
-                    text1: updatedFavorites.includes(locationId)
-                        ? 'Ubicació afegida als teus preferits!'
-                        : 'Ubicació eliminada dels teus preferits!',
-                    visibilityTime: 1500,
-                });
             }
         } catch (error) {
             console.error('Error actualitzant els preferits:', error);
@@ -218,39 +184,17 @@ export default function HomeLlista({ navigation }) {
         }
     };
 
-    // Manejar clic en les estrelles
-    const handleStarPress = (id, starIndex) => {
-        const newRating = starIndex + 1;
-        setLocations((prevLocations) =>
-            prevLocations.map((item) =>
-                item.id === id && item.rating !== newRating
-                    ? { ...item, rating: newRating }
-                    : item
-            )
-        );
-        updateRatingInFirestore(id, newRating);
-    };
-
-    // Manejar clic en el cor
-    const handleHeartPress = (id) => {
-        if (!user) {
-            Alert.alert('Error', 'Necessites iniciar sessió per afegir preferits.');
-            return;
-        }
-        updateFavoritesInFirestore(id);
-    };
-
     const renderStars = (rating, id) => {
         return Array.from({ length: 5 }, (_, index) => (
             <TouchableOpacity
                 key={index}
                 onPress={() => handleStarPress(id, index)}
-                style={styles.starButton} // Puedes eliminar esta línea si no quieres ningún estilo
+                style={styles.starContainer}
             >
                 <Ionicons
-                    name="star-outline"
-                    size={18}
-                    color={index < rating ? 'yellow' : 'gray'}
+                    name={index < rating ? "star" : "star-outline"}
+                    size={16}
+                    color={index < rating ? '#FFD700' : '#CBD5E0'}
                 />
             </TouchableOpacity>
         ));
@@ -258,59 +202,83 @@ export default function HomeLlista({ navigation }) {
 
     const renderHeart = (favorite, id) => {
         return (
-            <TouchableOpacity onPress={() => handleHeartPress(id)}>
+            <TouchableOpacity 
+                onPress={() => handleHeartPress(id)}
+                style={styles.heartButton}
+            >
                 <Ionicons
-                    name="heart-outline"
-                    size={24}
-                    color={favorite ? 'red' : 'black'}
+                    name={favorite ? "heart" : "heart-outline"}
+                    size={22}
+                    color={favorite ? '#FF4B6A' : '#64748B'}
                 />
             </TouchableOpacity>
         );
     };
 
+    const handleHeartPress = (id) => {
+        if (user) {
+            updateFavoritesInFirestore(id);  // La funció que ja tens per actualitzar els preferits
+        } else {
+            Alert.alert('Has d\'iniciar sessió', 'Necessites iniciar sessió per afegir als preferits.');
+        }
+    };
+
     const renderItem = ({ item }) => (
-        <View style={styles.item}>
-            <View style={styles.itemContent}>
-                <View style={styles.itemHeader}>
-                    <TouchableOpacity onPress={() => navigation.navigate('InformacionFicha', { locationId: item.id })}>
-                        <Text style={styles.itemTitle}>{item.name || 'Nom desconegut'}</Text>
+        <View style={styles.card}>
+            <Image source={{ uri: item.photo }} style={styles.cardImage} />
+            <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                    <TouchableOpacity 
+                        style={styles.titleContainer}
+                        onPress={() => navigation.navigate('InformacionFicha', { locationId: item.id })}
+                    >
+                        <Text style={styles.cardTitle}>{item.name || 'Nom desconegut'}</Text>
+                        <Text style={styles.cardCategory}>{item.category || 'Sense categoria'}</Text>
                     </TouchableOpacity>
-                    {renderHeart(item.favorite, item.id)} 
+                    {renderHeart(item.favorite, item.id)}
                 </View>
-                <Text style={styles.itemDescription}>{item.description || 'Descripció no disponible'}</Text>
-                <Text style={styles.itemCategory}>{item.category || 'Sense categoria'}</Text> 
-                <View style={styles.starsContainer}>
-                    {renderStars(item.rating, item.id)}
+                
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                    {item.description || 'Descripció no disponible'}
+                </Text>
+                
+                <View style={styles.cardFooter}>
+                    <View style={styles.ratingContainer}>
+                        {renderStars(item.rating, item.id)}
+                    </View>
+                    <TouchableOpacity 
+                        onPress={() => handleDeletePress(item.id)}
+                        style={styles.deleteButton}
+                    >
+                        <Ionicons name="trash-outline" size={18} color="#64748B" />
+                    </TouchableOpacity>
                 </View>
-                <Image source={{ uri: item.photo }} style={styles.itemImage} />
             </View>
-            <TouchableOpacity onPress={() => handleDeletePress(item.id)}>
-                <Ionicons name="ellipsis-vertical" size={24} color="black" />
-            </TouchableOpacity>
         </View>
     );
 
     return (
-        <View style={{ flex: 1, marginTop: 50 }}>
-            <View style={styles.headerContainer}>
-                <View style={styles.header}>
-                    <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('Info')}>
-                        <Ionicons name="ellipsis-vertical" size={24} color="black" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Llista</Text>
-                </View>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Llista</Text>
+                <TouchableOpacity 
+                    style={styles.headerButton}
+                    onPress={() => navigation.navigate('Info')}
+                >
+                    <Ionicons name="settings-outline" size={24} color="#1F2937" />
+                </TouchableOpacity>
+            </View>
 
-                <View style={styles.buttonArea}>
-                    <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => navigation.navigate('MenuPrincipal')}
-                    >
-                        <Text style={styles.buttonText}>Mapa</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.buttonSelected]}>
-                        <Text style={styles.buttonText}>Llista</Text>
-                    </TouchableOpacity>
-                </View>
+            <View style={styles.tabContainer}>
+                <TouchableOpacity
+                    style={styles.tab}
+                    onPress={() => navigation.navigate('MenuPrincipal')}
+                >
+                    <Text style={styles.tabText}>Mapa</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.tab, styles.activeTab]}>
+                    <Text style={[styles.tabText, styles.activeTabText]}>Llista</Text>
+                </TouchableOpacity>
             </View>
 
             <FlatList
@@ -318,129 +286,149 @@ export default function HomeLlista({ navigation }) {
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContainer}
+                showsVerticalScrollIndicator={false}
             />
-
-            <View style={styles.footerContainer}>
-                <FSection currentSection={currentSection} onPress={handleSectionChange} navigation={navigation} />
+            <View style={styles.footer}>
+                <FSection
+                    currentSection={1}
+                    onPress={handlePress}
+                    navigation={navigation}
+                />
             </View>
+            
             <Toast />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    headerContainer: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        margin: 10,
-        padding: 10,
-    },
-    itemImage: {
-        width: 100,  // L'amplada de la imatge
-        height: 100, // Alçada de la imatge
-        borderRadius: 10, // Opcional, per redondejar les vores
-        marginTop: 10, // Añadido para separar la imagen de los elementos anteriores
+    container: {
+        flex: 1,
+        backgroundColor: '#F8FAFC',
+        paddingBottom: 100, // space for FSection at the bottom
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
+        backgroundColor: '#FFFFFF',
     },
     headerTitle: {
-        fontSize: 24,
-        color: 'black',
-        textAlign: 'center',
-        flex: 1,
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#1F2937',
     },
-    headerIcon: {
-        padding: 10,
+    headerButton: {
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: '#F1F5F9',
     },
-    buttonArea: {
+    tabContainer: {
         flexDirection: 'row',
-        justifyContent: 'center',
+        padding: 16,
+        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
     },
-    button: {
-        backgroundColor: 'transparent',
-        borderRadius: 10,
-        padding: 10,
-        marginHorizontal: 5,
-        width: '40%',
+    tab: {
+        flex: 1,
+        paddingVertical: 12,
         alignItems: 'center',
+        borderRadius: 12,
     },
-    buttonSelected: {
-        backgroundColor: '#FF6347',
+    activeTab: {
+        backgroundColor: '#2563EB',
     },
-    buttonText: {
+    tabText: {
         fontSize: 16,
-        color: 'black',
+        fontWeight: '600',
+        color: '#64748B',
+    },
+    activeTabText: {
+        color: '#FFFFFF',
     },
     listContainer: {
-        paddingHorizontal: 25,
+        padding: 16,
     },
-    item: {
-        backgroundColor: 'lightgrey',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
+    card: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    cardImage: {
+        height: 200,
+        width: '100%',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+    },
+    cardContent: {
+        padding: 16,
+    },
+    cardHeader: {
         flexDirection: 'row',
-        alignItems: 'center',
-    },
-    mapPinIcon: {
-        marginRight: 10,
-    },
-    itemContent: {
-        flex: 1,
-        flexDirection: 'column', // Cambiado a 'column' para apilar los elementos verticalmente
-        justifyContent: 'flex-start',
+        justifyContent: 'space-between',
         alignItems: 'flex-start',
     },
-    itemTextContainer: {
+    titleContainer: {
         flex: 1,
+        marginRight: 12,
     },
-    itemTitle: {
+    cardTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: 'black',
+        fontWeight: '700',
+        color: '#1F2937',
+        marginBottom: 4,
     },
-    itemDescription: {
+    cardCategory: {
         fontSize: 14,
-        color: 'gray',
+        color: '#2563EB',
+        fontWeight: '600',
     },
-    itemCategory: {
+    cardDescription: {
         fontSize: 14,
-        fontWeight: 'bold', // Añadir esta línea para que el texto esté en negrita
-        color: 'black',
-        marginTop: 5, // Espacio entre la descripción y la categoría
+        color: '#64748B',
+        marginVertical: 12,
+        lineHeight: 20,
     },
-    itemInfo: {
+    cardFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    starsContainer: {
-        flexDirection: 'row',
-        marginRight: 10,
+    deleteButton: {
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: '#F1F5F9',
     },
-    starButton: {
-        
-        borderWidth: 1,
-        borderRadius: 5,
-        padding: 5,
-        marginHorizontal: 2,
+    heartButton: {
+        padding: 8,
+        borderRadius: 12,
     },
-    footerContainer: {
+    footer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 10,
-        backgroundColor: 'lightgrey',
+        backgroundColor: '#FFFFFF',
         borderTopWidth: 1,
-        borderTopColor: 'gray',
-    },
-    footerButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        padding: 20,
-        backgroundColor: 'lightgrey',
+        borderTopColor: '#E2E8F0',
+        paddingVertical: 8,
+        zIndex: 1, // Per garantir que estigui per sobre del mapa
     },
 });

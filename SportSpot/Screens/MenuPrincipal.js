@@ -1,55 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import FSection from '../components/FSection';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import * as Animatable from 'react-native-animatable';
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 
 export default function MenuPrincipal({ navigation }) {
     const [isMapVisible, setIsMapVisible] = useState(true);
-    const [locations, setLocations] = useState([]); // Estat per emmagatzemar les ubicacions
+    const [locations, setLocations] = useState([]);
 
     useEffect(() => {
         const db = getFirestore();
-        const locationsCollection = collection(db, 'Locations'); // Nom de la col·lecció a Firebase
+        const locationsCollection = collection(db, 'Locations');
 
-        // Listener per canvis en temps real a Firestore
         const unsubscribe = onSnapshot(locationsCollection, (snapshot) => {
             const locationList = snapshot.docs
                 .map((doc) => {
                     const data = doc.data();
-                    const location = data.location; // Obté el camp `location`
+                    const location = data.location;
                     if (location && location.latitude && location.longitude) {
                         return {
                             id: doc.id,
-                            name: data.name || 'Sense nom', // Nom de la ubicació
-                            description: data.description || 'Sense descripció', // Descripció de la ubicació
+                            name: data.name || 'Sense nom',
+                            description: data.description || 'Sense descripció',
                             latitude: location.latitude,
                             longitude: location.longitude,
-                            rating: data.rating || 0, // Valoració per defecte
-                            category: data.category || 'Desconeguda', // Afegeix la categoria
+                            rating: data.rating || 0,
+                            category: data.category || 'Desconeguda',
                         };
                     }
-                    return null; // Retorna null si les coordenades no són vàlides
+                    return null;
                 })
-                .filter((loc) => loc !== null); // Elimina les ubicacions amb coordenades no vàlides
-            setLocations(locationList); // Estableix l'estat amb les ubicacions vàlides
+                .filter((loc) => loc !== null);
+            setLocations(locationList);
         });
 
-        // Tornar a desconnectar el listener quan el component es destrueixi
         return () => unsubscribe();
     }, []);
 
     const handlePress = (id) => {
-        if (id === 1) {
-            navigation.navigate("MenuPrincipal");
-        } else if (id === 2) {
-            navigation.navigate("Preferits");
-        } else if (id === 3) {
-            navigation.navigate("AfegirNovaUbicacio");
-        } else if (id === 4) {
-            navigation.navigate("Usuari");
+        switch (id) {
+            case 1: navigation.navigate("MenuPrincipal"); break;
+            case 2: navigation.navigate("Preferits"); break;
+            case 3: navigation.navigate("AfegirNovaUbicacio"); break;
+            case 4: navigation.navigate("Usuari"); break;
         }
     };
 
@@ -61,82 +55,81 @@ export default function MenuPrincipal({ navigation }) {
         }
     };
 
-    const handleIconPress = () => {
-        navigation.navigate("Info");
+    const renderStars = (rating) => {
+        return Array.from({ length: 5 }, (_, index) => (
+            <Ionicons
+                key={index}
+                name={index < rating ? "star" : "star-outline"}
+                size={16}
+                color={index < rating ? '#FFD700' : '#CBD5E0'}
+                style={{ marginRight: 2 }}
+            />
+        ));
     };
 
-    const { width, height } = Dimensions.get('window');
-
     return (
-        <View style={{ flex: 1, paddingTop: 50 }}>
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={handleIconPress} style={styles.headerIcon}>
-                        <Ionicons name="ellipsis-vertical" size={24} color="white" />
-                    </TouchableOpacity>
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.headerTitle}>Menú Principal</Text>
-                    </View>
-                </View>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Mapa</Text>
+                <TouchableOpacity 
+                    style={styles.headerButton}
+                    onPress={() => navigation.navigate('Info')}
+                >
+                    <Ionicons name="settings-outline" size={24} color="#1F2937" />
+                </TouchableOpacity>
+            </View>
 
-                <View style={styles.mapContainer}>
-                    <View style={[styles.buttonArea, { marginTop: -20 }]}>
-                        <View style={styles.buttonRectangle}>
-                            <TouchableOpacity
-                                style={[styles.button, isMapVisible && styles.buttonSelected]}
-                                onPress={() => toggleMapList('map')}
-                            >
-                                <Text style={styles.buttonText}>Mapa</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.button, !isMapVisible && styles.buttonSelected]}
-                                onPress={() => toggleMapList('list')}
-                            >
-                                <Text style={styles.buttonText}>Llista</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+            <View style={styles.tabContainer}>
+                <TouchableOpacity 
+                    style={[styles.tab, styles.activeTab]}
+                    onPress={() => toggleMapList('map')}
+                >
+                    <Text style={[styles.tabText, styles.activeTabText]}>Mapa</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={styles.tab}
+                    onPress={() => toggleMapList('list')}
+                >
+                    <Text style={styles.tabText}>Llista</Text>
+                </TouchableOpacity>
+            </View>
 
-                    {isMapVisible && (
-                        <View style={styles.roundedMapContainer}>
-                            <MapView
-                                style={styles.map}
-                                initialRegion={{
-                                    latitude: 41.722730,
-                                    longitude: 1.812957,
-                                    latitudeDelta: 0.0922,
-                                    longitudeDelta: 0.0421,
-                                }}
-                            >
-                                {locations.map((location) => (
-                                    <Marker
-                                        key={location.id}
-                                        coordinate={{
-                                            latitude: location.latitude,
-                                            longitude: location.longitude,
-                                        }}
-                                        title={location.name}
-                                        description={location.description}
-                                    >
-                                        <Callout>
-                                            <View style={styles.calloutContainer}>
-                                                <Ionicons name="location-outline" size={30} color="black" />
-                                                <Text style={styles.calloutTitle}>{location.name}</Text>
-                                                <Text style={styles.calloutDescription}>{location.description}</Text>
-                                                <Text style={styles.calloutDescription}>{location.category}</Text>
-                                                <View style={styles.ratingContainer}>
-                                                    <Text>⭐ {location.rating}</Text>
-                                                </View>
-                                            </View>
-                                        </Callout>
-                                    </Marker>
-                                ))}
-                            </MapView>
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
+            {/* Ajustem l'alçada del mapa */}
+            <View style={styles.mapContainer}>
+                <MapView
+                    style={styles.map}
+                    initialRegion={{
+                        latitude: 41.722730,
+                        longitude: 1.812957,
+                        latitudeDelta: 0.0922,
+                        longitudeDelta: 0.0421,
+                    }}
+                >
+                    {locations.map((location) => (
+                        <Marker
+                            key={location.id}
+                            coordinate={{
+                                latitude: location.latitude,
+                                longitude: location.longitude,
+                            }}
+                            title={location.name}
+                        >
+                            <Callout>
+                                <View style={styles.calloutContainer}>
+                                    <Text style={styles.calloutTitle}>{location.name}</Text>
+                                    <Text style={styles.calloutCategory}>{location.category}</Text>
+                                    <Text style={styles.calloutDescription}>{location.description}</Text>
+                                    <View style={styles.calloutRating}>
+                                        {renderStars(location.rating)}
+                                    </View>
+                                </View>
+                            </Callout>
+                        </Marker>
+                    ))}
+                </MapView>
+            </View>
 
+            {/* Componente FSection a la part inferior */}
             <View style={styles.footer}>
                 <FSection
                     currentSection={1}
@@ -149,116 +142,110 @@ export default function MenuPrincipal({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    scrollContainer: {
-        flexGrow: 1,
-        paddingBottom: 80, 
-        backgroundColor: '#FFFFFF',
+    container: {
+        flex: 1,
+        backgroundColor: '#F8FAFC',
     },
     header: {
-        backgroundColor: '#FF6347', // Color taronja per tota la capçalera
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 20, // Fes que la capçalera sigui més alta per un millor aspecte
-        paddingHorizontal: 15, // Afegim una mica de padding als costats per a més espai
-        borderBottomWidth: 1,
-        borderBottomColor: '#e6e6e6',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
+        backgroundColor: '#FFFFFF',
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: 'white', // El text serà blanc per destacar sobre el fons taronja
-        textAlign: 'center',
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#1F2937',
     },
-    headerIcon: {
-        padding: 5,
-        position: 'absolute',
-        left: 20, // Col·loca la icona a l'esquerra
+    headerButton: {
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: '#F1F5F9',
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        padding: 16,
+        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+        borderRadius: 12,
+        marginHorizontal: 4,
+    },
+    activeTab: {
+        backgroundColor: '#2563EB',
+    },
+    tabText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#64748B',
+    },
+    activeTabText: {
+        color: '#FFFFFF',
     },
     mapContainer: {
-        flex: 7,
-        padding: 10,
-        marginTop: 10,
-        alignItems: 'center',
-    },
-    buttonArea: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        marginBottom: 10,
-        marginTop: -20,
-    },
-    buttonRectangle: {
-        flexDirection: 'row',
-        width: '70%',
-        backgroundColor: '#F08080',
-        borderRadius: 10,
-        paddingVertical: 10,
-        alignItems: 'center',
-    },
-    button: {
-        backgroundColor: 'transparent',
-        borderRadius: 10,
-        padding: 12,
-        width: '45%',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-    },
-    buttonSelected: {
-        backgroundColor: '#FF6347',
-    },
-    buttonText: {
-        fontSize: 16,
-        color: 'black',
-    },
-    roundedMapContainer: {
-        width: '95%',
-        height: Dimensions.get('window').height * 0.55,
+        flex: 0.8, // Limitem l'espai del mapa a 70% de la pantalla
+        margin: 16,
         borderRadius: 20,
         overflow: 'hidden',
-        marginTop: 20,
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
     },
     map: {
         width: '100%',
         height: '100%',
     },
     calloutContainer: {
-        alignItems: 'center',
-        width: 150,
+        padding: 12,
+        minWidth: 200,
+        maxWidth: 250,
     },
     calloutTitle: {
-        fontWeight: 'bold',
         fontSize: 16,
+        fontWeight: '700',
+        color: '#1F2937',
+        marginBottom: 4,
+    },
+    calloutCategory: {
+        fontSize: 14,
+        color: '#2563EB',
+        fontWeight: '600',
+        marginBottom: 8,
     },
     calloutDescription: {
-        textAlign: 'center',
         fontSize: 14,
-        marginVertical: 5,
+        color: '#64748B',
+        marginBottom: 8,
+        lineHeight: 20,
     },
-    ratingContainer: {
-        marginBottom: 5,
+    calloutRating: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
     },
     footer: {
-        width: '100%',
-        backgroundColor: '#f1f1f1',  // Fons suau per al footer
-        paddingVertical: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#e0e0e0',
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
+        backgroundColor: '#FFFFFF',
+        borderTopWidth: 1,
+        borderTopColor: '#E2E8F0',
+        paddingVertical: 8,
+        zIndex: 1, // Per garantir que estigui per sobre del mapa
     },
 });

@@ -34,23 +34,27 @@ const Login = ({ navigation }) => {
           resizeMode="cover" 
         />
       </View>
+
       <View style={styles.formContainer}>
+        {/* Button Section */}
         <View style={styles.buttonRectangle}>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.button, selectedButton === 'signIn' && styles.buttonSelected]}
               onPress={() => setSelectedButton('signIn')}
             >
-              <Text style={styles.buttonText}>Sign in</Text>
+              <Text style={styles.buttonText}>Iniciar Sessió</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, selectedButton === 'signUp' && styles.buttonSelected]}
               onPress={() => navigation.navigate('Register')}
             >
-              <Text style={styles.buttonText}>Sign up</Text>
+              <Text style={styles.buttonText}>Registra't</Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Input Fields */}
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -61,15 +65,16 @@ const Login = ({ navigation }) => {
         />
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder="Contrasenya"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
           placeholderTextColor="#B0B0B0"
         />
       </View>
+
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>Log in</Text>
+        <Text style={styles.loginButtonText}>Inicia Sessió</Text>
       </TouchableOpacity>
     </View>
   );
@@ -80,32 +85,41 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     width: '100%',
     height: 300,
     overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
   },
   logo: {
     width: '100%',
     height: '100%',
+    borderRadius: 20,
   },
   formContainer: {
-    backgroundColor: 'lightgray',
+    backgroundColor: '#FFFFFF',
     padding: 20,
     borderRadius: 20,
-    marginBottom: 20,
     width: '80%',
     minHeight: 270,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   buttonRectangle: {
     width: '100%',
-    backgroundColor: '#F08080',
-    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
     paddingVertical: 10,
     alignItems: 'center',
     marginBottom: 20,
@@ -117,46 +131,47 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: 'transparent',
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 10,
     width: '45%',
     alignItems: 'center',
   },
   buttonSelected: {
-    backgroundColor: '#FF6347',
+    backgroundColor: '#2563EB',
   },
   buttonText: {
     fontSize: 16,
-    color: 'black',
+    color: '#1F2937',
+    fontWeight: '600',
   },
   input: {
     height: 50,
-    borderColor: '#D1D1D1',
+    borderColor: '#E2E8F0',
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 15,
     paddingLeft: 15,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#F9FAFB',
     fontSize: 16,
     width: '100%',
   },
   loginButton: {
-    backgroundColor: '#F08080',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#2563EB',
+    padding: 12,
+    borderRadius: 12,
     width: '70%',
     alignItems: 'center',
     marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   loginButtonText: {
-    color: 'black',
+    color: '#FFFFFF',
     fontSize: 16,
-  },
-  registerText: {
-    color: '#F08080',
-    textAlign: 'center',
-    marginTop: 15,
-    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
