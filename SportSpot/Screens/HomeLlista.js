@@ -4,7 +4,7 @@ import { Ionicons } from 'react-native-vector-icons';
 import FSection from '../components/FSection';  // import your FSection component
 import Toast from 'react-native-toast-message';
 import { firebase } from '../utils/firebaseConfig';
-import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default function HomeLlista({ navigation }) {
@@ -29,11 +29,12 @@ export default function HomeLlista({ navigation }) {
 
                 let photoURL = null;
                 if (data.photo) {
-                    const storageRef = firebase.storage().ref(data.photo);
                     try {
-                        photoURL = await storageRef.getDownloadURL();
+                        const storageRef = firebase.storage().ref(data.photo);
+                        photoURL = await storageRef.getDownloadURL(); // Obtenir la URL de descàrrega
                     } catch (error) {
                         console.error("Error obtenint la URL de la imatge:", error);
+                        photoURL = null; // Garantir que photoURL no sigui indefinit
                     }
                 }
 
@@ -124,36 +125,6 @@ export default function HomeLlista({ navigation }) {
         }
     };
 
-    const deleteLocation = async (id) => {
-        const db = getFirestore();
-        const locationRef = doc(db, 'Locations', id);
-        try {
-            await deleteDoc(locationRef);
-            setLocations((prevLocations) => prevLocations.filter((location) => location.id !== id));
-        } catch (error) {
-            console.error('Error eliminant la ubicació:', error);
-            Alert.alert('Error', 'No s\'ha pogut eliminar les ubicacions');
-        }
-    };
-
-    const handleDeletePress = (id) => {
-        Alert.alert(
-            'Confirmar Eliminació',
-            'Estàs segur que vols eliminar aquesta ubicació?',
-            [
-                {
-                    text: 'Cancel·lar',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Eliminar',
-                    onPress: () => deleteLocation(id),
-                },
-            ],
-            { cancelable: false }
-        );
-    };
-
     const updateFavoritesInFirestore = async (locationId) => {
         const db = getFirestore();
         const userRef = doc(db, 'Users', user.uid);
@@ -188,7 +159,7 @@ export default function HomeLlista({ navigation }) {
         return Array.from({ length: 5 }, (_, index) => (
             <TouchableOpacity
                 key={index}
-                onPress={() => handleStarPress(id, index)}
+                
                 style={styles.starContainer}
             >
                 <Ionicons
@@ -246,12 +217,6 @@ export default function HomeLlista({ navigation }) {
                     <View style={styles.ratingContainer}>
                         {renderStars(item.rating, item.id)}
                     </View>
-                    <TouchableOpacity 
-                        onPress={() => handleDeletePress(item.id)}
-                        style={styles.deleteButton}
-                    >
-                        <Ionicons name="trash-outline" size={18} color="#64748B" />
-                    </TouchableOpacity>
                 </View>
             </View>
         </View>
@@ -410,11 +375,6 @@ const styles = StyleSheet.create({
     ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    deleteButton: {
-        padding: 8,
-        borderRadius: 12,
-        backgroundColor: '#F1F5F9',
     },
     heartButton: {
         padding: 8,

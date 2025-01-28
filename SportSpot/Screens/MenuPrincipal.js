@@ -94,7 +94,6 @@ export default function MenuPrincipal({ navigation }) {
                 </TouchableOpacity>
             </View>
 
-            {/* Ajustem l'alçada del mapa */}
             <View style={styles.mapContainer}>
                 <MapView
                     style={styles.map}
@@ -129,7 +128,6 @@ export default function MenuPrincipal({ navigation }) {
                 </MapView>
             </View>
 
-            {/* Componente FSection a la part inferior */}
             <View style={styles.footer}>
                 <FSection
                     currentSection={1}

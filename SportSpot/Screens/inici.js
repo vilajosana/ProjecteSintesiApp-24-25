@@ -7,7 +7,6 @@ const Inici = () => {
 
   return (
     <View style={styles.container}>
-      {/* Cabecera con la imagen de fondo */}
       <View style={styles.imageWrapper}>
         <ImageBackground
           source={require('../images/SportSpotLogo.png')}
@@ -16,20 +15,16 @@ const Inici = () => {
         />
       </View>
 
-      {/* Título en un fondo ovalado */}
       <View style={styles.titleContainer}>
-        <Text style={styles.titleText}>SPORTS SPOT</Text>
+        <Text style={styles.titleText}>SPORT SPOT</Text>
       </View>
 
-      {/* Espacio entre el título y los botones */}
       <View style={styles.space} />
-
-      {/* Botón de inicio de sesión */}
+      
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
         <Text style={styles.buttonText}>Iniciar Sessió</Text>
       </TouchableOpacity>
-
-      {/* Botón de registro */}
+      
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
         <Text style={styles.buttonText}>Registrar-se</Text>
       </TouchableOpacity>
