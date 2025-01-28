@@ -55,6 +55,10 @@ export default function MenuPrincipal({ navigation }) {
         }
     };
 
+    const handleCalloutPress = (locationId) => {
+        navigation.navigate("InformacionFicha", { locationId });
+    };
+
     const renderStars = (rating) => {
         return Array.from({ length: 5 }, (_, index) => (
             <Ionicons
@@ -113,7 +117,7 @@ export default function MenuPrincipal({ navigation }) {
                             }}
                             title={location.name}
                         >
-                            <Callout>
+                            <Callout onPress={() => handleCalloutPress(location.id)}>
                                 <View style={styles.calloutContainer}>
                                     <Text style={styles.calloutTitle}>{location.name}</Text>
                                     <Text style={styles.calloutCategory}>{location.category}</Text>
