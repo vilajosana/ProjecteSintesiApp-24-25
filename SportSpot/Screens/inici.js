@@ -21,10 +21,12 @@ const Inici = () => {
 
       <View style={styles.space} />
       
+      {/* Botón Iniciar sesión */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
         <Text style={styles.buttonText}>Iniciar Sessió</Text>
       </TouchableOpacity>
       
+      {/* Botón Registrar */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
         <Text style={styles.buttonText}>Registrar-se</Text>
       </TouchableOpacity>

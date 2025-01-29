@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
-import FSection from '../components/FSection';  // import your FSection component
+import FSection from '../components/FSection';  // Importa el teu component FSection
 import Toast from 'react-native-toast-message';
 import { firebase } from '../utils/firebaseConfig';
 import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -22,27 +22,18 @@ export default function HomeLlista({ navigation }) {
             const locationList = locationSnapshot.docs.map(async (doc) => {
                 const data = doc.data();
                 const location = data.location;
+
+                // Comprovar si les coordenades són vàlides
                 if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
                     console.warn(`Ubicació sense coordenades vàlides: ${doc.id}`);
                     return null;
-                }
-
-                let photoURL = null;
-                if (data.photo) {
-                    try {
-                        const storageRef = firebase.storage().ref(data.photo);
-                        photoURL = await storageRef.getDownloadURL(); // Obtenir la URL de descàrrega
-                    } catch (error) {
-                        console.error("Error obtenint la URL de la imatge:", error);
-                        photoURL = null; // Garantir que photoURL no sigui indefinit
-                    }
                 }
 
                 return {
                     id: doc.id,
                     name: data.name || 'Sense nom',
                     description: data.description || 'Sense descripció',
-                    photo: photoURL,
+                    photo: null,  // Ja no assignem cap imatge
                     rating: data.rating || 0,
                     latitude: location.latitude,
                     longitude: location.longitude,
@@ -51,6 +42,7 @@ export default function HomeLlista({ navigation }) {
                 };
             });
 
+            // Esperar que totes les ubicacions siguin resoltes
             const resolvedLocations = await Promise.all(locationList);
             setLocations(resolvedLocations.filter((location) => location !== null));
         } catch (error) {
@@ -159,7 +151,6 @@ export default function HomeLlista({ navigation }) {
         return Array.from({ length: 5 }, (_, index) => (
             <TouchableOpacity
                 key={index}
-                
                 style={styles.starContainer}
             >
                 <Ionicons
@@ -196,7 +187,11 @@ export default function HomeLlista({ navigation }) {
 
     const renderItem = ({ item }) => (
         <View style={styles.card}>
-            <Image source={{ uri: item.photo }} style={styles.cardImage} />
+            {item.photo ? (
+                <Image source={item.photo} style={styles.cardImage} />
+            ) : (
+                <View style={styles.cardImage} /> 
+            )}
             <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
                     <TouchableOpacity 
@@ -270,7 +265,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F8FAFC',
-        paddingBottom: 100, // space for FSection at the bottom
+        paddingBottom: 100, // Space for FSection at the bottom
     },
     header: {
         flexDirection: 'row',
@@ -331,14 +326,9 @@ const styles = StyleSheet.create({
         shadowRadius: 3,
         elevation: 3,
     },
-    cardImage: {
-        height: 200,
-        width: '100%',
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
-    },
     cardContent: {
         padding: 16,
+        marginTop: 0, // Eliminar l'espai superior de la imatge dins el contingut
     },
     cardHeader: {
         flexDirection: 'row',
@@ -357,38 +347,31 @@ const styles = StyleSheet.create({
     },
     cardCategory: {
         fontSize: 14,
-        color: '#2563EB',
-        fontWeight: '600',
+        color: '#6B7280',
     },
     cardDescription: {
         fontSize: 14,
-        color: '#64748B',
-        marginVertical: 12,
-        lineHeight: 20,
+        color: '#4B5563',
+        marginTop: 8,
     },
     cardFooter: {
+        marginTop: 8,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 8,
     },
     ratingContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
     },
     heartButton: {
         padding: 8,
-        borderRadius: 12,
+    },
+    starContainer: {
+        marginRight: 2,
     },
     footer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: '#FFFFFF',
-        borderTopWidth: 1,
-        borderTopColor: '#E2E8F0',
-        paddingVertical: 8,
-        zIndex: 1, // Per garantir que estigui per sobre del mapa
-    },
+    }
 });
